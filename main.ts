@@ -1,4 +1,4 @@
-import { Plugin, TFile, Notice, WorkspaceLeaf } from 'obsidian';
+import { Plugin, TFile, Notice, WorkspaceLeaf, MarkdownView, View, App } from 'obsidian';
 
 export default class PDFNotesPlugin extends Plugin {
 	file: TFile | null = null;
@@ -23,20 +23,6 @@ export default class PDFNotesPlugin extends Plugin {
 		this.app.workspace.on('file-open', (file) => this.onFileChange(file));
 	}
 
-	observePDFScroll() {
-		const pdfContainer = document.querySelector('.pdf-page-input') as HTMLDivElement;
-		document.getElementsByClassName("pdf-page-input")[0].addEventListener('change', () => {
-			console.log('scrolling');
-		});
-		console.log(pdfContainer)
-	
-		if (!pdfContainer) {
-			return;
-		}
-		pdfContainer.onchange = (e) => {
-			console.log('scrolling');
-		}
-	}
 	async openPDFWithNotes() {
 		await this.getPDFFile();
 		if (!this.file) return;
@@ -44,6 +30,26 @@ export default class PDFNotesPlugin extends Plugin {
 		await this.loadNotesFromFile();
 		// 📝 **Créer et afficher la barre latérale**
 		await this.createNotesSidebar();
+
+		//const leaf = this.app.workspace.activeLeaf;
+		const view : View | null = this.app.workspace.getActiveViewOfType(View);
+
+		if (view && view.viewer?.child?.pdfViewer) {
+			const pdfViewer = view.viewer.child.pdfViewer;
+
+			// Ajoute un écouteur d'événement pour détecter le changement de page
+			pdfViewer.eventBus.on('pagechanging', (event: any) => {
+				const currentPage = event.pageNumber;
+				console.log(`Page actuelle : ${currentPage}`);
+				this.currentPage = currentPage;
+				this.updateNotesSidebar();
+			});
+
+			console.log("Écouteur de changement de page ajouté !");
+		} else {
+			console.error("Impossible de trouver le visualiseur PDF.");
+		}
+
 
 	}
 
@@ -86,6 +92,15 @@ export default class PDFNotesPlugin extends Plugin {
 		this.app.workspace.revealLeaf(this.sidebarLeaf);
 	}
 
+	async updateNotesSidebar() {
+		if (!this.sidebarLeaf) return;
+
+		const textarea = this.sidebarLeaf.view.containerEl.querySelector('.notes-textarea') as HTMLTextAreaElement;
+		if (!textarea) return;
+
+		textarea.value = await this.getSavedNotes(this.currentPage);
+	}
+
 	async getSavedNotes(page: number): Promise<string> {
 		if (!this.file) return '';
 
@@ -123,10 +138,10 @@ export default class PDFNotesPlugin extends Plugin {
 
 	async loadNotesFromFile() {
 		if (!this.file) return;
-	
+
 		const notesPath = `${this.file.basename}.md`;
 		const notesFile = await this.app.vault.getAbstractFileByPath(notesPath) as TFile;
-	
+
 		if (notesFile) {
 			const content = await this.app.vault.read(notesFile);
 			this.notes = this.parseMarkdownNotes(content);
@@ -136,19 +151,19 @@ export default class PDFNotesPlugin extends Plugin {
 	parseMarkdownNotes(content: string): { [key: number]: string } {
 		const notes: { [key: number]: string } = {};
 		const matches = content.matchAll(/## Page (\d+)\n([\s\S]*?)(?=\n## Page \d+|\n?$)/g);
-	
+
 		for (const match of matches) {
 			const pageNum = parseInt(match[1], 10);
 			notes[pageNum] = match[2].trim();
 		}
-	
+
 		return notes;
 	}
 
 	onFileChange(file: TFile | null) {
 		const activeElement = document.activeElement as HTMLElement;
 		const isInsideSidebar = this.sidebarLeaf?.view.containerEl.contains(activeElement);
-	
+
 		// Ferme la barre latérale seulement si un fichier différent est ouvert
 		// et que l'élément actif n'est PAS dans la barre latérale
 		if (!file || file.extension !== 'pdf' || file.path !== this.file?.path) {
@@ -162,16 +177,9 @@ export default class PDFNotesPlugin extends Plugin {
 			this.openPDFWithNotes();
 		}
 	}
-	
 
-	updatePage(newPage: number) {
-		this.currentPage = newPage;
-		if (this.sidebarLeaf) {
-			const textarea = this.sidebarLeaf.view.containerEl.querySelector('.notes-textarea') as HTMLTextAreaElement;
-			if (textarea) {
-				textarea.value = this.getSavedNotes(newPage);
-				console.log('Page', newPage);
-			}
-		}
+	changePage() {
+		// Ajoutez ici le code pour changer de page
+
 	}
 }

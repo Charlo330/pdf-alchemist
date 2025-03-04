@@ -1,10 +1,13 @@
-import { Plugin, TFile, Notice, WorkspaceLeaf, MarkdownView, View, App } from 'obsidian';
+import { EmbeddableMarkdownEditor } from 'embeddable-editor';
+import { Plugin, TFile, Notice, WorkspaceLeaf, View, App } from 'obsidian';
 
 export default class PDFNotesPlugin extends Plugin {
 	file: TFile | null = null;
 	currentPage = 1;
 	notes: { [key: number]: string } = {}; // Stocke les notes par page
 	sidebarLeaf: WorkspaceLeaf | null = null;
+	editor: EmbeddableMarkdownEditor | null = null;
+	titlePageElement : HTMLElement | null = null;
 
 	async onload() {
 		// Commande pour ouvrir le PDF avec les notes
@@ -32,20 +35,16 @@ export default class PDFNotesPlugin extends Plugin {
 		await this.createNotesSidebar();
 
 		//const leaf = this.app.workspace.activeLeaf;
-		const view : View | null = this.app.workspace.getActiveViewOfType(View);
+		const view: View | null = this.app.workspace.getActiveViewOfType(View);
 
 		if (view && view.viewer?.child?.pdfViewer) {
 			const pdfViewer = view.viewer.child.pdfViewer;
 
 			// Ajoute un écouteur d'événement pour détecter le changement de page
 			pdfViewer.eventBus.on('pagechanging', (event: any) => {
-				const currentPage = event.pageNumber;
-				console.log(`Page actuelle : ${currentPage}`);
-				this.currentPage = currentPage;
+				this.currentPage = event.pageNumber;
 				this.updateNotesSidebar();
 			});
-
-			console.log("Écouteur de changement de page ajouté !");
 		} else {
 			console.error("Impossible de trouver le visualiseur PDF.");
 		}
@@ -75,18 +74,24 @@ export default class PDFNotesPlugin extends Plugin {
 		container.addClass('pdf-notes-sidebar');
 
 		// Ajout d'un titre
-		container.createEl('h3', { text: `📝 Notes: ${this.file.basename}` });
+		container.createEl('h3', { text: `📝 Notes: ${this.file.basename}`, cls: 'pdf-title'});
+		this.titlePageElement = container.createEl('h3', { text: `Page ${this.currentPage}`, cls: 'pdf-page-note' });
+		container.createEl('hr', { cls: 'pdf-notes' });
+		const savedNotes = await this.getSavedNotes(this.currentPage);
 
-		// Création du champ de texte pour les notes
-		const textarea = container.createEl('textarea', {
-			cls: 'notes-textarea',
-			placeholder: 'Écrivez vos notes ici...',
+		this.editor = new EmbeddableMarkdownEditor(this.app, container, {
+			value: savedNotes,
+			placeholder: "Type here...",
+			onChange: (update) => {
+				if (this.editor)
+					this.saveNotes(this.currentPage, this.editor.value);
+			},
+			onBlur: (editor) => {
+				console.log("Éditeur perdu le focus, contenu :", editor.value);
+			},
+			onSubmit: (editor) => {
+			}
 		});
-
-		textarea.value = await this.getSavedNotes(this.currentPage);
-
-		// Enregistrer les notes automatiquement
-		textarea.addEventListener('input', () => this.saveNotes(this.currentPage, textarea.value));
 
 		// Empêche la barre latérale de se fermer en conservant la référence à la feuille
 		this.app.workspace.revealLeaf(this.sidebarLeaf);
@@ -95,10 +100,11 @@ export default class PDFNotesPlugin extends Plugin {
 	async updateNotesSidebar() {
 		if (!this.sidebarLeaf) return;
 
-		const textarea = this.sidebarLeaf.view.containerEl.querySelector('.notes-textarea') as HTMLTextAreaElement;
-		if (!textarea) return;
+		if (this.editor) {
+			this.editor.value = await this.getSavedNotes(this.currentPage);
+		}
 
-		textarea.value = await this.getSavedNotes(this.currentPage);
+		this.titlePageElement?.setText(`Page ${this.currentPage}`);
 	}
 
 	async getSavedNotes(page: number): Promise<string> {
@@ -176,10 +182,5 @@ export default class PDFNotesPlugin extends Plugin {
 		else {
 			this.openPDFWithNotes();
 		}
-	}
-
-	changePage() {
-		// Ajoutez ici le code pour changer de page
-
 	}
 }

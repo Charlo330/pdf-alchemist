@@ -47,23 +47,29 @@ export default class PDFNotesPlugin extends Plugin {
 		} else {
 			console.error("Impossible de trouver le visualiseur PDF.");
 		}
+
+		this.app.workspace.on("active-leaf-change", async () => {
+			this.onFileChange(noteService, sidebarService, fileService);
+		});
 	}
 
-	onFileChange(file: TFile | null) {
-		const activeElement = document.activeElement as HTMLElement;
-		const isInsideSidebar = this.sidebarLeaf?.view.containerEl.contains(activeElement);
+async onFileChange(noteService: NoteService, sidebarService: SidebarService, fileService: FileService) {
+    const file = fileService.getCurrentFocusFile();
 
-		// Ferme la barre latérale seulement si un fichier différent est ouvert
-		// et que l'élément actif n'est PAS dans la barre latérale
-		if (!file || file.extension !== 'pdf' || file.path !== this.file?.path) {
-			if (!isInsideSidebar && this.sidebarLeaf) {
-				this.sidebarLeaf.detach();
+    if (!file || file.extension !== 'pdf') {
+        if (sidebarService.isSidebarVisible()) {
+            sidebarService.detachSidebar();
+        }
+        return;
+    }
 
-				this.sidebarLeaf = null;
-			}
-		}
-		else {
-			this.openPDFWithNotes();
-		}
-	}
+    // Vérifier si on a changé de fichier PDF
+    const previousFile = fileService.getPdfFile();
+    if (!previousFile || previousFile.path !== file.path) {
+        await fileService.initialisePdfFile(); // Met à jour le fichier PDF actif
+        this.openPDFWithNotes(noteService, sidebarService, fileService);
+    }
+}
+
+	
 }

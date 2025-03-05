@@ -41,6 +41,10 @@ export class FileService {
 		}
 	}
 
+	getCurrentFocusFile() {
+		return this.app.workspace.getActiveFile();
+	}
+
 	getMdFile() {
 		return this.mdFile;
 	}

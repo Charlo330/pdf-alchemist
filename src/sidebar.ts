@@ -63,14 +63,35 @@ export class SidebarService {
 	}
 
 	async updateNotesSidebar() {
-		console.log(this.sidebarLeaf)
 		if (!this.sidebarLeaf) return;
 
 		if (this.editor) {
-			this.editor.value = await this.noteService.getSavedNotes(this.noteService.getCurrentPage()) as string;
+			console.log(this.noteService.getSavedNotes(this.noteService.getCurrentPage()));
+			const content  = await this.noteService.getSavedNotes(this.noteService.getCurrentPage()) ? this.noteService.getSavedNotes(this.noteService.getCurrentPage()) : '';
+			this.editor.value = content as string;
 		}
 
 		this.titlePageElement?.setText(`Page ${this.noteService.getCurrentPage()}`);
 	}
+
+	detachSidebar() {
+		if (this.sidebarLeaf) {
+			this.sidebarLeaf.detach();
+			this.sidebarLeaf = null;
+		}
+	}
+
+	isSidebarVisible() {
+		return !!this.app.workspace.getLeavesOfType("pdf-notes-sidebar").length;
+	}
+
+	isEditingNotes(): boolean {
+		const activeLeaf = this.app.workspace;
+		if (!activeLeaf) return false;
+	
+		const view = activeLeaf.view;
+		return view && view.getViewType() === "markdown" && view.file?.basename.includes("notes");
+	}
+	
 
 }

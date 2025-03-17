@@ -66,7 +66,6 @@ export class SidebarService {
 		if (!this.sidebarLeaf) return;
 
 		if (this.editor) {
-			console.log(this.noteService.getSavedNotes(this.noteService.getCurrentPage()));
 			const content  = await this.noteService.getSavedNotes(this.noteService.getCurrentPage()) ? this.noteService.getSavedNotes(this.noteService.getCurrentPage()) : '';
 			this.editor.value = content as string;
 		}
@@ -76,13 +75,14 @@ export class SidebarService {
 
 	detachSidebar() {
 		if (this.sidebarLeaf) {
-			this.sidebarLeaf.detach();
-			this.sidebarLeaf = null;
+			this.sidebarLeaf.view.containerEl.empty();
+			this.sidebarLeaf.view.containerEl.createEl('p', { text: '📝 open pdf file', cls: 'pdf-empty' });
 		}
 	}
 
 	isSidebarVisible() {
-		return !!this.app.workspace.getLeavesOfType("pdf-notes-sidebar").length;
+		console.log(this.sidebarLeaf !== null);
+		return this.sidebarLeaf !== null;
 	}
 
 	isEditingNotes(): boolean {

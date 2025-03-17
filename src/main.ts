@@ -24,12 +24,14 @@ export default class PDFNotesPlugin extends Plugin {
 		});
 
 		// Ajout d'un bouton dans la barre latérale
-		this.addRibbonIcon("file-text", "Ouvrir PDF avec notes", () => {
+		this.addRibbonIcon("wand-sparkles", "Open pdf with notes", () => {
 			this.openPDFWithNotes(noteService, sidebarService, fileService);
 		});
 	}
 
 	async openPDFWithNotes(noteService: NoteService, sidebarService: SidebarService, fileService: FileService) {
+		console.log('open pdf with notes')
+		console.log(sidebarService.isSidebarVisible());
 		await fileService.initialisePdfFile()
 		await noteService.loadNotesFromFile();
 		await sidebarService.createNotesSidebar();
@@ -48,28 +50,23 @@ export default class PDFNotesPlugin extends Plugin {
 			console.error("Impossible de trouver le visualiseur PDF.");
 		}
 
-		this.app.workspace.on("active-leaf-change", async () => {
-			this.onFileChange(noteService, sidebarService, fileService);
+		this.app.workspace.on("file-open", async (file) => {
+			if (!file) return;
+			this.onFileChange(file, noteService, sidebarService, fileService);
 		});
 	}
 
-async onFileChange(noteService: NoteService, sidebarService: SidebarService, fileService: FileService) {
-    const file = fileService.getCurrentFocusFile();
+	async onFileChange(file: TFile, noteService: NoteService, sidebarService: SidebarService, fileService: FileService) {
 
-    if (!file || file.extension !== 'pdf') {
-        if (sidebarService.isSidebarVisible()) {
-            sidebarService.detachSidebar();
-        }
-        return;
-    }
-
-    // Vérifier si on a changé de fichier PDF
-    const previousFile = fileService.getPdfFile();
-    if (!previousFile || previousFile.path !== file.path) {
-        await fileService.initialisePdfFile(); // Met à jour le fichier PDF actif
-        this.openPDFWithNotes(noteService, sidebarService, fileService);
-    }
-}
-
-	
+		console.log('extension')
+		console.log(file?.extension);
+		if (!file || file.extension !== 'pdf') {
+			if (!file || file.extension !== 'pdf' || file.path !== fileService.getPdfFile()?.path) {
+				sidebarService.detachSidebar();
+				return;
+			}
+		} else {
+			this.openPDFWithNotes(noteService, sidebarService, fileService);
+		}
+	}
 }

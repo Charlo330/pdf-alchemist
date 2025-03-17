@@ -20,8 +20,6 @@ export class FileService {
 
 	async initialisePdfFile() {
 		this.pdfFile = this.app.workspace.getActiveFile();
-		console.log('app')
-		console.log(this.pdfFile)
 		if (!this.pdfFile || this.pdfFile.extension !== 'pdf') {
 			new Notice('❌ Veuillez ouvrir un fichier PDF');
 			this.pdfFile = null;
@@ -31,10 +29,8 @@ export class FileService {
 
 	async initialiseMdFile() {
 		// TODO gérer avec setting
-		console.log('md')
 		if (!this.pdfFile) return;
 		this.mdFile = await this.app.vault.getAbstractFileByPath(`${this.pdfFile?.basename}.md`) as TFile;
-		console.log(this.mdFile);
 		
 		if (!this.mdFile) {
 			this.mdFile = await this.app.vault.create(`${this.pdfFile?.basename}.md`, '');
@@ -42,6 +38,8 @@ export class FileService {
 	}
 
 	getCurrentFocusFile() {
+		console.log('get current file')
+		console.log(this.app.workspace.getRightLeaf(false)?.view.getViewType())
 		return this.app.workspace.getActiveFile();
 	}
 

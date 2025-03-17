@@ -22,29 +22,21 @@ export class NoteService {
 
 	getSavedNotes(page: number): string | undefined {
 		const fileName = this.fileService.getPdfFile()?.basename;
-		console.log('filename');
-		console.log(fileName)
 		if (!fileName) return '';
-		console.log('notes');
-		console.log(this.notes);
 		return this.notes[fileName]?.[page] ? this.notes[fileName]?.[page] : '';
 	}
 
 	async saveNotes(page: number, content: string) {
 		const pdfFile = this.fileService.getPdfFile();
 		if (!pdfFile) return;
-		console.log('content');
 
 		this.notes[pdfFile.basename][page] = content;
-		console.log(this.notes);
-
 
 		// Sauvegarde dans un fichier Markdown
 		const notesPath = `${pdfFile.basename}.md`;
 		let notesFile = this.app.vault.getAbstractFileByPath(notesPath) as TFile;
 
 		let notesContent = '';
-		console.log(Object.entries(this.notes));
 		for (const [pageNum, text] of Object.entries(this.notes[pdfFile.basename])) {
 			notesContent += `## Page ${pageNum}\n${text}\n\n`;
 		}
@@ -57,16 +49,11 @@ export class NoteService {
 	}
 
 	async loadNotesFromFile() {
-		console.log('LOAD NOTES');
-		console.log(this.fileService);
-	
 		const pdfFile = this.fileService.getPdfFile();
-		console.log(pdfFile);
 		if (!pdfFile) return;
 	
 		const fileName = pdfFile.basename;
 		const notesPath = `${fileName}.md`;
-		console.log(notesPath);
 	
 		const notesFile = await this.app.vault.getAbstractFileByPath(notesPath) as TFile;
 	
@@ -79,8 +66,6 @@ export class NoteService {
 				this.notes[fileName] = {};
 			}
 			Object.assign(this.notes[fileName], loadedNotes);
-	
-			console.log(this.notes);
 		}
 	}
 	

@@ -37,12 +37,6 @@ export class FileService {
 		}
 	}
 
-	getCurrentFocusFile() {
-		console.log('get current file')
-		console.log(this.app.workspace.getRightLeaf(false)?.view.getViewType())
-		return this.app.workspace.getActiveFile();
-	}
-
 	getMdFile() {
 		return this.mdFile;
 	}

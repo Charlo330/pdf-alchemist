@@ -27,11 +27,14 @@ export default class PDFNotesPlugin extends Plugin {
 		this.addRibbonIcon("wand-sparkles", "Open pdf with notes", () => {
 			this.openPDFWithNotes(noteService, sidebarService, fileService);
 		});
+
+		this.app.workspace.on("file-open", async (file) => {
+			if (!file) return;
+			await this.onFileChange(file, noteService, sidebarService, fileService);
+		});
 	}
 
 	async openPDFWithNotes(noteService: NoteService, sidebarService: SidebarService, fileService: FileService) {
-		console.log('open pdf with notes')
-		console.log(sidebarService.isSidebarVisible());
 		await fileService.initialisePdfFile()
 		await noteService.loadNotesFromFile();
 		await sidebarService.createNotesSidebar();
@@ -49,24 +52,20 @@ export default class PDFNotesPlugin extends Plugin {
 		} else {
 			console.error("Impossible de trouver le visualiseur PDF.");
 		}
-
-		this.app.workspace.on("file-open", async (file) => {
-			if (!file) return;
-			this.onFileChange(file, noteService, sidebarService, fileService);
-		});
 	}
 
 	async onFileChange(file: TFile, noteService: NoteService, sidebarService: SidebarService, fileService: FileService) {
-
-		console.log('extension')
-		console.log(file?.extension);
 		if (!file || file.extension !== 'pdf') {
 			if (!file || file.extension !== 'pdf' || file.path !== fileService.getPdfFile()?.path) {
 				sidebarService.detachSidebar();
 				return;
 			}
 		} else {
-			this.openPDFWithNotes(noteService, sidebarService, fileService);
+			await this.openPDFWithNotes(noteService, sidebarService, fileService);
 		}
+	}
+
+	async onunload() {
+		console.log("Unloading PDF Notes");
 	}
 }

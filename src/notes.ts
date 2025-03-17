@@ -54,13 +54,18 @@ export class NoteService {
 	
 		const fileName = pdfFile.basename;
 		const notesPath = `${fileName}.md`;
+
+		if (this.notes[fileName]) {
+			return;
+		}
 	
 		const notesFile = await this.app.vault.getAbstractFileByPath(notesPath) as TFile;
 	
 		if (notesFile) {
 			const content = await this.app.vault.read(notesFile);
+
 			const loadedNotes = this.parseMarkdownNotes(content, fileName);
-	
+
 			// Fusionner les nouvelles notes avec celles déjà en mémoire
 			if (!this.notes[fileName]) {
 				this.notes[fileName] = {};

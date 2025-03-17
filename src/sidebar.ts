@@ -58,7 +58,10 @@ export class SidebarService {
 			}
 		});
 
-		// Empêche la barre latérale de se fermer en conservant la référence à la feuille
+		this.sidebarLeaf.view.onunload = () => {
+			this.sidebarLeaf = null;
+		}
+
 		this.app.workspace.revealLeaf(this.sidebarLeaf);
 	}
 
@@ -66,7 +69,7 @@ export class SidebarService {
 		if (!this.sidebarLeaf) return;
 
 		if (this.editor) {
-			const content  = await this.noteService.getSavedNotes(this.noteService.getCurrentPage()) ? this.noteService.getSavedNotes(this.noteService.getCurrentPage()) : '';
+			const content  = await this.noteService.getSavedNotes(this.noteService.getCurrentPage());
 			this.editor.value = content as string;
 		}
 
@@ -76,12 +79,12 @@ export class SidebarService {
 	detachSidebar() {
 		if (this.sidebarLeaf) {
 			this.sidebarLeaf.view.containerEl.empty();
-			this.sidebarLeaf.view.containerEl.createEl('p', { text: '📝 open pdf file', cls: 'pdf-empty' });
+			this.sidebarLeaf.view.containerEl.createDiv({ text: '📝 No pdf opened', cls: 'pdf-empty' });
+			this.sidebarLeaf.view.containerEl.innerHTML = '📝 No pdf opened';
 		}
 	}
 
 	isSidebarVisible() {
-		console.log(this.sidebarLeaf !== null);
 		return this.sidebarLeaf !== null;
 	}
 

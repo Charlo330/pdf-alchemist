@@ -54,15 +54,16 @@ export class NoteService {
 	
 		const fileName = pdfFile.basename;
 		const notesPath = `${fileName}.md`;
-
-		if (this.notes[fileName]) {
-			return;
-		}
 	
 		const notesFile = await this.app.vault.getAbstractFileByPath(notesPath) as TFile;
 	
 		if (notesFile) {
 			const content = await this.app.vault.read(notesFile);
+
+			if (!content && this.notes[fileName]) {
+				this.notes[fileName] = {};
+				return;
+			}
 
 			const loadedNotes = this.parseMarkdownNotes(content, fileName);
 

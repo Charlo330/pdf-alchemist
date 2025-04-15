@@ -37,3 +37,17 @@
 	justify-content: center;
 	align-items: center;
 }
+
+.pdf-div {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.pdf-button-refresh {
+	background-color: var(--accent-h);
+}
+
+.pdf-button-refresh:hover {
+	cursor: pointer;
+}

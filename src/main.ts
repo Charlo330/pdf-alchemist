@@ -5,6 +5,7 @@ import { SidebarService } from "./sidebar";
 import { FileService } from "./file";
 
 export default class PDFNotesPlugin extends Plugin {
+	pluginOpen = false;
 	async onload() {
 		// Fournir dynamiquement l'instance de App
 		container.bind(TYPES.App).toConstantValue(this.app);
@@ -19,13 +20,19 @@ export default class PDFNotesPlugin extends Plugin {
 			id: "open-pdf-with-notes",
 			name: "Ouvrir le PDF avec annotations",
 			callback: async () => {
+				this.pluginOpen = !this.pluginOpen;
 				await this.openPDFWithNotes(noteService, sidebarService, fileService);
 			},
 		});
 
 		// Ajout d'un bouton dans la barre latérale
 		this.addRibbonIcon("wand-sparkles", "Open pdf with notes", () => {
-			this.openPDFWithNotes(noteService, sidebarService, fileService);
+			this.pluginOpen = !this.pluginOpen;
+			if (this.pluginOpen) {
+				this.openPDFWithNotes(noteService, sidebarService, fileService);
+			} else {
+				sidebarService.detachSidebar();
+			}
 		});
 
 		this.app.workspace.on("file-open", async (file) => {
@@ -55,13 +62,24 @@ export default class PDFNotesPlugin extends Plugin {
 	}
 
 	async onFileChange(file: TFile, noteService: NoteService, sidebarService: SidebarService, fileService: FileService) {
-		if (!file || file.extension !== 'pdf') {
-			if (!file || file.extension !== 'pdf' || file.path !== fileService.getPdfFile()?.path) {
-				sidebarService.detachSidebar();
-				return;
+		if (this.pluginOpen) {
+			if (!file || file.extension !== 'pdf') {
+				console.log('pas pdf')
+				if (!file || file.extension !== 'pdf' || file.path !== fileService.getPdfFile()?.path) {
+					sidebarService.emptySidebar();
+					return;
+				}
+			} else {
+				if (file.basename !== fileService.getPdfFile()?.basename) {
+					console.log("open pdf")
+					console.log(file.basename, fileService.getPdfFile()?.basename)
+					await this.openPDFWithNotes(noteService, sidebarService, fileService);
+				}
+				else {
+					sidebarService.unfocus();
+					return;
+				}
 			}
-		} else {
-			await this.openPDFWithNotes(noteService, sidebarService, fileService);
 		}
 	}
 

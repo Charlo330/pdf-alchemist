@@ -112,26 +112,10 @@ export class EmbeddableMarkdownEditor extends resolveEditorPrototype(app) implem
 		this.owner.editor = this.editor;
 
 		this.set(options.value || '');
-		this.register(
-			around(this.app.workspace, {
-				// @ts-expect-error (Incorrectly matches the deprecated setActiveLeaf method)
-				setActiveLeaf: (oldMethod: (leaf: WorkspaceLeaf, params?: ({ focus?: boolean })) => void) =>
-					(leaf: WorkspaceLeaf, params: { focus?: boolean }) => {
-						// If the editor is currently focused, prevent the workspace setting the focus to a workspaceLeaf instead
-						if (!this.activeCM.hasFocus)
-							oldMethod.call(this.app.workspace, leaf, params);
-					},
-			}),
-		);
-
 		// Execute onBlur when the editor loses focus
-		// NOTE: Apparently Chrome does a weird thing where removing an element from the DOM triggers a blur event
-		//		 (Hence why the ._loaded check is necessary)
 		if (this.options.onBlur !== defaultProperties.onBlur) {
-			this.editor.cm.contentDOM.addEventListener('blur', () => {
-				this.app.keymap.popScope(this.scope);
-				if (this._loaded)
-					this.options.onBlur(this)
+			this.editor!.cm.contentDOM.addEventListener("blur", () => {
+				this.options.onBlur(this);
 			});
 		}
 

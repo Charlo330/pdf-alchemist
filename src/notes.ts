@@ -26,7 +26,7 @@ export class NoteService {
 		return this.notes[fileName]?.[page] ? this.notes[fileName]?.[page] : '';
 	}
 
-	async saveNotes(page: number, content: string) {
+	async saveNotes(page: number, content:string) {
 		const pdfFile = this.fileService.getPdfFile();
 		if (!pdfFile) return;
 
@@ -37,11 +37,13 @@ export class NoteService {
 		let notesFile = this.app.vault.getAbstractFileByPath(notesPath) as TFile;
 
 		let notesContent = '';
+		// TODO ajouter settings pour delimiter
 		for (const [pageNum, text] of Object.entries(this.notes[pdfFile.basename])) {
 			notesContent += `## Page ${pageNum}\n${text}\n\n`;
 		}
 
 		if (!notesFile) {
+			// TODO ajouter setting pour le path de création du fichier.
 			notesFile = await this.app.vault.create(notesPath, notesContent);
 		} else {
 			await this.app.vault.modify(notesFile, notesContent);
@@ -85,6 +87,11 @@ export class NoteService {
 		}
 	
 		return notes;
+	}
+
+	async refresh() {
+		await this.fileService.initialiseMdFile();
+		await this.loadNotesFromFile();
 	}
 
 	getCurrentPage() {

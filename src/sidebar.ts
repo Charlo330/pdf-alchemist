@@ -25,15 +25,6 @@ export class SidebarService {
 		public noteService: NoteService
 	) {}
 
-	unfocus() {
-		if (this.editor) {
-			console.log(this.editor)
-			if (this.sidebarLeaf?.view) {
-				this.sidebarLeaf.view.containerEl.blur();
-			}
-		}
-	}
-
 	async createNotesSidebar() {
 
 		// Vérifie si la barre latérale existe déjà pour éviter de la recréer à chaque clic
@@ -41,10 +32,10 @@ export class SidebarService {
 			this.sidebarLeaf = this.app.workspace.getRightLeaf(false);
 		}
 
+		if(this.sidebarLeaf) {
+			this.sidebarLeaf.view.containerEl.id = 'pdf-notes-sidebar';
+		}
 		if (!this.sidebarLeaf) return;
-		
-		setIcon(this.sidebarLeaf.view.containerEl, 'edit');
-		this.sidebarLeaf.view.icon = 'edit'
 
 		const container = this.sidebarLeaf.view.containerEl;
 		container.empty();
@@ -113,10 +104,6 @@ export class SidebarService {
 
 	detachSidebar() {
 		this.sidebarLeaf?.detach();
-	}
-
-	isSidebarVisible() {
-		return this.sidebarLeaf !== null;
 	}
 
 	isEditingNotes(): boolean {

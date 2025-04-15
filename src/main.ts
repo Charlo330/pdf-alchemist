@@ -64,20 +64,13 @@ export default class PDFNotesPlugin extends Plugin {
 	async onFileChange(file: TFile, noteService: NoteService, sidebarService: SidebarService, fileService: FileService) {
 		if (this.pluginOpen) {
 			if (!file || file.extension !== 'pdf') {
-				console.log('pas pdf')
 				if (!file || file.extension !== 'pdf' || file.path !== fileService.getPdfFile()?.path) {
 					sidebarService.emptySidebar();
 					return;
 				}
 			} else {
-				if (file.basename !== fileService.getPdfFile()?.basename) {
-					console.log("open pdf")
-					console.log(file.basename, fileService.getPdfFile()?.basename)
+				if (file != fileService.getPdfFile()) {
 					await this.openPDFWithNotes(noteService, sidebarService, fileService);
-				}
-				else {
-					sidebarService.unfocus();
-					return;
 				}
 			}
 		}

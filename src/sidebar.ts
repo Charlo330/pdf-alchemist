@@ -1,7 +1,8 @@
-import { App, Notice, setIcon, WorkspaceLeaf } from 'obsidian';
+import { App, WorkspaceLeaf } from 'obsidian';
 import { EmbeddableMarkdownEditor } from 'embeddable-editor';
 import { NoteService } from './notes';
 import { inject, injectable } from 'inversify';
+import { PDF_NOTE_VIEW } from './pdfNoteView';
 
 const TYPES = {
 	App: Symbol.for("App"),
@@ -25,63 +26,33 @@ export class SidebarService {
 		public noteService: NoteService
 	) {}
 
+
+
 	async createNotesSidebar() {
+		let leaf = this.app.workspace.getLeavesOfType(PDF_NOTE_VIEW)[0];
 
-		// Vérifie si la barre latérale existe déjà pour éviter de la recréer à chaque clic
-		if (!this.sidebarLeaf) {
-			this.sidebarLeaf = this.app.workspace.getRightLeaf(false);
+		if (!leaf) {
+			leaf = this.app.workspace.getRightLeaf(false) as WorkspaceLeaf;
 		}
 
-		if(this.sidebarLeaf) {
-			this.sidebarLeaf.view.containerEl.id = 'pdf-notes-sidebar';
-		}
-		if (!this.sidebarLeaf) return;
+		this.sidebarLeaf = leaf;
 
-		const container = this.sidebarLeaf.view.containerEl;
-		container.empty();
-		container.addClass('pdf-notes-sidebar');
-
-		// Ajout d'un titre
-		container.createEl('h3', { text: `📝 Notes: ${this.noteService.getFileName()}`, cls: 'pdf-title' });
-		const div = container.createDiv({cls: 'pdf-div' });
-		this.titlePageElement = div.createEl('h3', { text: `Page ${this.noteService.getCurrentPage()}`, cls: 'pdf-page-note' });
-		const refreshButton = div.createEl('button', { cls: 'pdf-button-refresh' });
-		refreshButton.addEventListener('click', async () => {
-			await this.noteService.refresh();
-			this.updateNotesSidebar();
-			new Notice('🔄 Notes refreshed');
+		await leaf?.setViewState({
+			type: PDF_NOTE_VIEW,
+			active: true,
 		});
-		setIcon(refreshButton, 'refresh-ccw');
-		container.createEl('hr', { cls: 'pdf-notes' });
-		const savedNotes = await this.noteService.getSavedNotes(this.noteService.getCurrentPage());
-
-		this.editor = new EmbeddableMarkdownEditor(this.app, container, {
-			value: savedNotes,
-			placeholder: "Type here...",
-			onChange: (update) => {
-				if (this.editor) {
-					this.noteService.saveNotes(this.noteService.getCurrentPage(), this.editor.value);
-				}
-			
-			},
-			onBlur: (editor) => {
-				console.log("Éditeur perdu le focus, contenu :", editor.value);
-			},
-			onSubmit: (editor) => {
-			}
-		});
-
-		this.sidebarLeaf.view.onunload = () => {
-			this.sidebarLeaf = null;
+	
+		if (leaf){
+			leaf.view.navigation = true;
+			this.app.workspace.revealLeaf(leaf);
 		}
-
-		if (this.sidebarLeaf && this.sidebarLeaf.view) {
-			console.log(this.sidebarLeaf.view.getIcon());
-		}
-
-		this.app.workspace.revealLeaf(this.sidebarLeaf);
-
 	}
+
+	async isSidebarOpen(): Promise<boolean> {
+		const leaves = this.app.workspace.getLeavesOfType(PDF_NOTE_VIEW);
+		return leaves.length > 0;
+	}
+	
 
 	async updateNotesSidebar() {
 		if (!this.sidebarLeaf) return;
@@ -92,14 +63,6 @@ export class SidebarService {
 		}
 
 		this.titlePageElement?.setText(`Page ${this.noteService.getCurrentPage()}`);
-	}
-
-	emptySidebar() {
-		if (this.sidebarLeaf) {
-			this.sidebarLeaf.view.containerEl.empty();
-			this.sidebarLeaf.view.containerEl.createDiv({ text: '📝 No pdf opened', cls: 'pdf-empty' });
-			this.sidebarLeaf.view.containerEl.innerHTML = '📝 No pdf opened';
-		}
 	}
 
 	detachSidebar() {

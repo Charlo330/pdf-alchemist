@@ -18,13 +18,14 @@ export class FileService {
 		public app: App
 	) {}
 
-	async initialisePdfFile() {
-		this.pdfFile = this.app.workspace.getActiveFile();
+	async changePdfFile(file: TFile | null) {
+		console.log("FileService changePdfFile", file);
+		this.pdfFile = file;
 		if (!this.pdfFile || this.pdfFile.extension !== 'pdf') {
-			new Notice('❌ Veuillez ouvrir un fichier PDF');
 			this.pdfFile = null;
+			return;
 		}
-		this.initialiseMdFile();
+		await this.initialiseMdFile();
 	}
 
 	async initialiseMdFile() {
@@ -35,6 +36,10 @@ export class FileService {
 		if (!this.mdFile) {
 			this.mdFile = await this.app.vault.create(`${this.pdfFile?.basename}.md`, '');
 		}
+	}
+
+	isPdfFileOpened() {
+		return this.pdfFile?.extension == 'pdf';
 	}
 
 	getMdFile() {

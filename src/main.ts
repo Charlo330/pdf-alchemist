@@ -16,10 +16,10 @@ export default class PDFNotesPlugin extends Plugin {
 	pluginOpen = true;
 	pdfViewer: PdfViewer | null = null;
 	funct = async (event: { pageNumber: number }) => {
-			console.log("test1212");
 			this.noteService.setCurrentPage(event.pageNumber);
 			const leaves = this.app.workspace.getLeavesOfType(PDF_NOTE_VIEW);
 			const view = leaves[0].view as PdfNoteView;
+
 			await view.updateNotesSidebar();
 		};
 	noteService: NoteService;
@@ -37,7 +37,7 @@ export default class PDFNotesPlugin extends Plugin {
 		this.fileService = container.get<FileService>(TYPES.FileService);
 
 		this.registerView(PDF_NOTE_VIEW, (leaf) => {
-			return new PdfNoteView(leaf, this.noteService);
+			return new PdfNoteView(leaf, this.noteService, this.fileService);
 		});
 
 		// Commande pour ouvrir le PDF avec les notes
@@ -77,7 +77,7 @@ export default class PDFNotesPlugin extends Plugin {
 
 		this.app.workspace.on("file-open", async (file) => {
 			if (!file || this.fileService.pdfFile === file) return;
-			console.log("aller");
+			console.log("aller");	
 			this.fileService.changePdfFile(file);
 			await this.onFileChange();
 		});

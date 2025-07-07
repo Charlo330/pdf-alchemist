@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { ItemView, setIcon, WorkspaceLeaf } from "obsidian";
 import {
 	createEmbeddableMarkdownEditor,
 	EmbeddableMarkdownEditor,
@@ -11,6 +11,7 @@ export const PDF_NOTE_VIEW = "pdf-note-view";
 
 export class PdfNoteView extends ItemView {
 	titlePageElement: HTMLElement;
+	historyElement: HTMLElement | null = null;
 	editor: EmbeddableMarkdownEditor;
 	sidebarLeaf: WorkspaceLeaf | null = null;
 	container: HTMLElement;
@@ -33,7 +34,7 @@ export class PdfNoteView extends ItemView {
 	}
 
 	getIcon(): string {
-		return "music";
+		return "wand-sparkles";
 	}
 
 	async onOpen() {
@@ -49,27 +50,28 @@ export class PdfNoteView extends ItemView {
 
 		let div = this.container.createDiv({ cls: "pdf-div" });
 
-		this.titlePageElement = div.createEl("h3", {
-			text: `Page ${this.noteService.getCurrentPage()}`,
-			cls: "pdf-page-note",
-		});
-
-		this.container.createEl("hr", { cls: "pdf-notes" });
-
-		div = this.container.createDiv({
-			cls: "nav-buttons-div",
-		});
-
 		const prevButton = div.createEl("button", {
-			text: "Previous Page",
 			cls: "nav-button",
 			attr: {
 				"aria-label": "Previous Page",
 			},
 		});
 
+		setIcon(prevButton, "chevron-left");
+
+		this.titlePageElement = div.createEl("h3", {
+			text: `Page ${this.noteService.getCurrentPage()}`,
+			cls: "pdf-page-note",
+		});
+
+		this.historyElement = this.container.createDiv({ cls: "pdf-history" });
+
+		this.container.createEl("hr", { cls: "pdf-notes" });
+
 		prevButton.addEventListener("click", async () => {
 			const filename = this.subNoteStack.pop();
+
+			this.removeLastHistory();
 
 			if (!filename) return;
 
@@ -77,6 +79,8 @@ export class PdfNoteView extends ItemView {
 				const notes = await this.noteService.getSavedNotes(
 					this.noteService.getCurrentPage()
 				);
+
+				prevButton.style.display = "none";
 
 				this.noteService.setInSubNote(false);
 				await this.fileService.initialiseMdFile(filename);
@@ -87,13 +91,15 @@ export class PdfNoteView extends ItemView {
 			}
 		});
 
+		prevButton.style.display = "none";
+
 		const savedNotes = await this.noteService.getSavedNotes(
 			this.noteService.getCurrentPage()
 		);
 
 		const onClickLink = async (event: MouseEvent) => {
 		const target = event.target as HTMLElement;
-
+		prevButton.style.display = "inline-block";
 		this.noteService.setInSubNote(true);
 
 		const filename = target.textContent;
@@ -108,6 +114,8 @@ export class PdfNoteView extends ItemView {
 		}
 
 		this.openSubNote(filename);
+
+		this.addHistory(filename);
 	}
 
 		this.editor = createEmbeddableMarkdownEditor(this.app, this.container, {
@@ -129,6 +137,23 @@ export class PdfNoteView extends ItemView {
 		});
 	}
 
+	async addHistory(fileName: string) {
+		if (this.historyElement) {
+			this.historyElement.createEl("span", {
+				text: fileName
+			}).createEl("span", {
+				text: " >",
+				cls: "pdf-history-separator",
+			});
+		}
+	}
+
+	async removeLastHistory() {
+		if (this.historyElement && this.historyElement.lastChild) {
+			this.historyElement.lastChild.remove();
+		}
+	}
+
 	async openSubNote(filename: string) {
 		await this.fileService.initialiseMdFile(filename);
 
@@ -143,6 +168,20 @@ export class PdfNoteView extends ItemView {
 				this.noteService.getCurrentPage()
 			);
 			this.editor.set(content ?? "");
+
+			if (this.historyElement) {
+				this.historyElement.empty();
+			}
+
+			if (this.noteService.getFileName()) {
+				this.addHistory(this.noteService.getFileName() as string);
+			}
+
+			const elem = this.container.find(".nav-button");
+			
+			if (elem) {
+				elem.style.display = "None";
+			}
 		}
 		this.titlePageElement?.setText(
 			`Page ${this.noteService.getCurrentPage()}`

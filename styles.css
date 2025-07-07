@@ -48,6 +48,22 @@
 	background-color: var(--accent-h);
 }
 
+.pdf-history {
+	display: flex;
+	gap: 5px;
+	width: 100%;
+}
+
+.pdf-history-separator {
+	font-weight: bold;
+	color: var(--text-accent);
+}
+
+.nav-button {
+	cursor: pointer;
+	color: var(--accent-h)
+}
+
 .pdf-button-refresh:hover {
 	cursor: pointer;
 }

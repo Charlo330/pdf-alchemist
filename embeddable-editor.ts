@@ -284,9 +284,7 @@ export class EmbeddableMarkdownEditor {
 		this.editor.cm.contentDOM.addEventListener(
 			"click",
 			(event: MouseEvent) => {
-				console.log("Click event in editor", event);
 				const target = event.target as HTMLElement;
-				console.log("Target element:", target);
 				if (this.options.onClickLink) { // Prevent default link behavior
 					if (
 						target.tagName == "A" &&

@@ -108,8 +108,6 @@ export class PdfNoteView extends ItemView {
 		}
 
 		this.openSubNote(filename);
-
-		//const filepath = this.fileService.getMdFilePath();
 	}
 
 		this.editor = createEmbeddableMarkdownEditor(this.app, this.container, {

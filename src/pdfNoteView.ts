@@ -39,16 +39,16 @@ export class PdfNoteView extends ItemView {
 
 	async onOpen() {
 		this.container = this.containerEl.children[1] as HTMLElement;
+		this.container.classList.add("pdf-notes-sidebar");
 		if (!container) return;
 		this.container.empty();
-		this.container.addClass("pdf-notes-sidebar");
 
 		this.container.createEl("h3", {
 			text: `📝 Notes: ${this.noteService.getFileName()}`,
 			cls: "pdf-title",
 		});
 
-		let div = this.container.createDiv({ cls: "pdf-div" });
+		const div = this.container.createDiv({ cls: "pdf-div" });
 
 		const prevButton = div.createEl("button", {
 			cls: "nav-button",
@@ -134,6 +134,7 @@ export class PdfNoteView extends ItemView {
 			},
 			onSubmit: () => {},
 			onClickLink: onClickLink,
+			cls: "pdf-editor",
 		});
 	}
 
@@ -178,7 +179,7 @@ export class PdfNoteView extends ItemView {
 			}
 
 			const elem = this.container.find(".nav-button");
-			
+
 			if (elem) {
 				elem.style.display = "None";
 			}

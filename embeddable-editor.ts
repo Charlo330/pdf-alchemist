@@ -1,11 +1,4 @@
-import {
-	App,
-	MarkdownScrollableEditView,
-	Scope,
-	TFile,
-	WidgetEditorView,
-	WorkspaceLeaf,
-} from "obsidian";
+import { App, Scope, TFile, WorkspaceLeaf } from "obsidian";
 
 import { EditorSelection, Prec } from "@codemirror/state";
 import { EditorView, keymap, placeholder, ViewUpdate } from "@codemirror/view";
@@ -72,6 +65,7 @@ interface MarkdownEditorProps {
 	onBlur: (editor: EmbeddableMarkdownEditor) => void;
 	onPaste: (e: ClipboardEvent, editor: EmbeddableMarkdownEditor) => void;
 	onChange: (update: ViewUpdate) => void;
+	onClickLink?: (event: MouseEvent) => void;
 }
 
 const defaultProperties: MarkdownEditorProps = {
@@ -87,6 +81,7 @@ const defaultProperties: MarkdownEditorProps = {
 	onBlur: () => {},
 	onPaste: () => {},
 	onChange: () => {},
+	onClickLink: () => {},
 };
 
 /**
@@ -285,6 +280,27 @@ export class EmbeddableMarkdownEditor {
 			originalOnUpdate(update, changed);
 			if (changed) this.options.onChange(update);
 		};
+
+		this.editor.cm.contentDOM.addEventListener(
+			"click",
+			(event: MouseEvent) => {
+				console.log("Click event in editor", event);
+				const target = event.target as HTMLElement;
+				console.log("Target element:", target);
+				if (this.options.onClickLink) { // Prevent default link behavior
+					if (
+						target.tagName == "A" &&
+						target.hasAttribute("href") &&
+						target.parentElement?.className.contains(
+							"cm-hmd-internal"
+						)
+					) {
+						this.options.onClickLink(event);
+						event.stopImmediatePropagation();
+					}
+				}
+			}
+		);
 	}
 
 	// Get the current editor value

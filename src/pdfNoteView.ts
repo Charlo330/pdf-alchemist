@@ -78,8 +78,6 @@ export class PdfNoteView extends ItemView {
 					this.noteService.getCurrentPage()
 				);
 
-				console.log("NOTEST", notes)
-
 				this.noteService.setInSubNote(false);
 				await this.fileService.initialiseMdFile(filename);
 				this.editor.set(notes ?? "");
@@ -92,6 +90,27 @@ export class PdfNoteView extends ItemView {
 		const savedNotes = await this.noteService.getSavedNotes(
 			this.noteService.getCurrentPage()
 		);
+
+		const onClickLink = async (event: MouseEvent) => {
+		const target = event.target as HTMLElement;
+
+		this.noteService.setInSubNote(true);
+
+		const filename = target.textContent;
+
+		if (!filename) return;
+
+		const mdFile = this.fileService.getMdFile();
+
+		if (mdFile) {
+			console.log("mdfile", mdFile.basename);
+			this.subNoteStack.push(mdFile.basename);
+		}
+
+		this.openSubNote(filename);
+
+		//const filepath = this.fileService.getMdFilePath();
+	}
 
 		this.editor = createEmbeddableMarkdownEditor(this.app, this.container, {
 			value: savedNotes,
@@ -108,42 +127,8 @@ export class PdfNoteView extends ItemView {
 				console.log("Éditeur perdu le focus", editor.value);
 			},
 			onSubmit: () => {},
+			onClickLink: onClickLink,
 		});
-
-		this.editor.editor.cm.contentDOM.addEventListener(
-			"click",
-			(event: MouseEvent) => this.onClickLink(event),
-			true
-		);
-	}
-
-	async onClickLink(event: MouseEvent) {
-		const target = event.target as HTMLElement;
-
-		if (
-			target.tagName === "A" &&
-			target.hasAttribute("href") &&
-			target.parentElement?.className.contains("cm-hmd-internal")
-		) {
-			event.stopImmediatePropagation(); // Empêche le comportement par défaut du clic
-
-			this.noteService.setInSubNote(true);
-
-			const filename = target.textContent;
-
-			if (!filename) return;
-
-			const mdFile = this.fileService.getMdFile();
-
-			if (mdFile) {
-				console.log("mdfile", mdFile.basename);
-				this.subNoteStack.push(mdFile.basename);
-			}
-
-			this.openSubNote(filename);
-
-			//const filepath = this.fileService.getMdFilePath();
-		}
 	}
 
 	async openSubNote(filename: string) {

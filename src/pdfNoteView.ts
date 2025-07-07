@@ -1,4 +1,4 @@
-import { ItemView, TFile, WorkspaceLeaf } from "obsidian";
+import { ItemView, WorkspaceLeaf } from "obsidian";
 import {
 	createEmbeddableMarkdownEditor,
 	EmbeddableMarkdownEditor,
@@ -57,8 +57,8 @@ export class PdfNoteView extends ItemView {
 		this.container.createEl("hr", { cls: "pdf-notes" });
 
 		div = this.container.createDiv({
-			cls: "nav-buttons-div"
-		})
+			cls: "nav-buttons-div",
+		});
 
 		const prevButton = div.createEl("button", {
 			text: "Previous Page",
@@ -68,29 +68,30 @@ export class PdfNoteView extends ItemView {
 			},
 		});
 
-		const savedNotes = await this.noteService.getSavedNotes(
-			this.noteService.getCurrentPage()
-		);
-
 		prevButton.addEventListener("click", async () => {
 			const filename = this.subNoteStack.pop();
-			console.log("mdfile pop", filename)
-			console.log("pdf", this.fileService.getPdfFile()?.basename)
 
 			if (!filename) return;
 
 			if (filename == this.fileService.getPdfFile()?.basename) {
-				if (savedNotes) {
-					await this.fileService.initialiseMdFile(filename);
-					this.noteService.setCurrentPage(1);
-					this.editor.set(savedNotes);
-				}
-			}
-			else {
-				console.log("entrer2")
+				const notes = await this.noteService.getSavedNotes(
+					this.noteService.getCurrentPage()
+				);
+
+				console.log("NOTEST", notes)
+
+				this.noteService.setInSubNote(false);
+				await this.fileService.initialiseMdFile(filename);
+				this.editor.set(notes ?? "");
+			} else {
+				this.noteService.setInSubNote(true);
 				await this.openSubNote(filename);
 			}
 		});
+
+		const savedNotes = await this.noteService.getSavedNotes(
+			this.noteService.getCurrentPage()
+		);
 
 		this.editor = createEmbeddableMarkdownEditor(this.app, this.container, {
 			value: savedNotes,
@@ -126,6 +127,8 @@ export class PdfNoteView extends ItemView {
 		) {
 			event.stopImmediatePropagation(); // Empêche le comportement par défaut du clic
 
+			this.noteService.setInSubNote(true);
+
 			const filename = target.textContent;
 
 			if (!filename) return;
@@ -133,7 +136,7 @@ export class PdfNoteView extends ItemView {
 			const mdFile = this.fileService.getMdFile();
 
 			if (mdFile) {
-				console.log("mdfile", mdFile.basename)
+				console.log("mdfile", mdFile.basename);
 				this.subNoteStack.push(mdFile.basename);
 			}
 
@@ -145,7 +148,6 @@ export class PdfNoteView extends ItemView {
 
 	async openSubNote(filename: string) {
 		await this.fileService.initialiseMdFile(filename);
-		this.noteService.setCurrentPage(-1);
 
 		await this.fileService.readMdFile().then((content) => {
 			this.editor.set(content);

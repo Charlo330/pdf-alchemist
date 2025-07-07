@@ -12,6 +12,7 @@ injectable()
 export class NoteService {
 	notes: { [fileName: string]: { [page: number]: string } } = {}; 
 	private currentPage = 1;
+	private inSubNote = false;
 
 	constructor(
 		@inject(TYPES.App)
@@ -26,6 +27,14 @@ export class NoteService {
 		return this.notes[fileName]?.[page] ? this.notes[fileName]?.[page] : '';
 	}
 
+	getInSubNote() {
+		return this.inSubNote;
+	}
+
+	setInSubNote(inSubNote: boolean) {
+		this.inSubNote = inSubNote;
+	}
+
 	async saveNotes(page: number, content:string) {
 		const pdfFile = this.fileService.getPdfFile();
 
@@ -34,11 +43,13 @@ export class NoteService {
 		let notesFile;
 		let notesContent = '';
 
-		if (page < 1) {
+		if (this.inSubNote) {
 			notesFile = this.fileService.getMdFile();
 			notesContent = content;
 		}
 		else {
+			console.log("Savbing base note")
+
 			this.notes[pdfFile.basename][page] = content;
 
 			// Sauvegarde dans un fichier Markdown

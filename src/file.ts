@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
 import { App, Notice, TFile } from "obsidian";
+import { PdfNoteLinker } from "./PdfNoteLinker";
 
 const TYPES = {
 	App: Symbol.for("App"),
@@ -12,14 +13,16 @@ const TYPES = {
 export class FileService {
 	pdfFile: TFile | null = null;
 	mdFile: TFile | null = null;
+	pdfNoteLinker: PdfNoteLinker | null = null;
 
 	constructor(
 		@inject(TYPES.App)
 		public app: App
-	) {}
+	) {
+		this.pdfNoteLinker = new PdfNoteLinker(app);
+	}
 
 	async changePdfFile(file: TFile | null) {
-		console.log("FileService changePdfFile", file);
 		this.pdfFile = file;
 		if (!this.pdfFile || this.pdfFile.extension !== "pdf") {
 			this.pdfFile = null;
@@ -29,7 +32,6 @@ export class FileService {
 	}
 
 	async initialiseMdFile(filename = "") {
-		// TODO gérer avec setting
 		if (filename) {
 			this.mdFile = this.app.metadataCache.getFirstLinkpathDest(
 				filename,
@@ -38,20 +40,40 @@ export class FileService {
 			return;
 		}
 		if (!this.pdfFile) return;
+
+		console.log("Loading notes from PDF file:", this.pdfFile.path);
+
+		const noteFilepath = await this.getNoteLinkFromPdf(
+			this.pdfFile.path
+		);
+
+		if (!noteFilepath) {
+			new Notice(
+				"No note linked to this PDF file. Please create a note first."
+			);
+			return;
+		}
+
 		this.mdFile = (await this.app.vault.getAbstractFileByPath(
-			`${this.pdfFile?.basename}.md`
+			noteFilepath
 		)) as TFile;
 
+		console.log(this.mdFile)
+
 		if (!this.mdFile) {
+			// TODO setting
 			this.mdFile = await this.app.vault.create(
 				`${this.pdfFile?.basename}.md`,
 				""
 			);
+			this.pdfNoteLinker?.linkPdfToNote(
+				this.pdfFile.path,
+				this.mdFile.path
+			);
 		}
 	}
 
-	async readMdFile() : Promise<string> {
-
+	async readMdFile(): Promise<string> {
 		if (!this.mdFile) {
 			new Notice("No markdown file to read.");
 			return "";
@@ -59,11 +81,6 @@ export class FileService {
 		const content = await this.app.vault.read(this.mdFile);
 		return content;
 	}
-
-	isPdfFileOpened() {
-		return this.pdfFile?.extension == "pdf";
-	}
-
 	getMdFile() {
 		return this.mdFile;
 	}
@@ -72,5 +89,32 @@ export class FileService {
 	}
 	getPdfFile() {
 		return this.pdfFile;
+	}
+
+	getPdfLinkFromNote(notePath: string): string | null {
+		if (!this.pdfNoteLinker) {
+			new Notice("PdfNoteLinker is not initialized.");
+			return null;
+		}
+		return this.pdfNoteLinker.getPdfForNote(notePath);
+	}
+
+	getNoteLinkFromPdf(pdfPath: string): string | null {
+		if (!this.pdfNoteLinker) {
+			new Notice("PdfNoteLinker is not initialized.");
+			return null;
+		}
+		return this.pdfNoteLinker.getNoteForPdf(pdfPath);
+	}
+
+	async isNotePdfLinked(filePath: string): Promise<boolean> {
+		if (!filePath) return false;
+
+		const noteFilepath = await this.getPdfLinkFromNote(filePath);
+		console.log("isNotePdfLinked", noteFilepath);
+
+		if (!noteFilepath) return false;
+
+		return true;
 	}
 }

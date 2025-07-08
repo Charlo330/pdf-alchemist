@@ -187,6 +187,9 @@ export class PdfNoteView extends ItemView {
 		this.titlePageElement?.setText(
 			`Page ${this.noteService.getCurrentPage()}`
 		);
+		console.log("pdfFile", this.fileService.getPdfFile());
+		console.log("mdFile", this.fileService.getMdFile());
+		console.log("content", this.noteService.getSavedNotes(this.noteService.getCurrentPage()));
 	}
 
 	emptySidebar() {

@@ -1,11 +1,11 @@
-import { EventRef, Plugin, Setting, TFile } from "obsidian";
+import { EventRef, Plugin, TFile } from "obsidian";
 import { container, TYPES } from "./container";
 import { NoteService } from "./notes";
 import { SidebarService } from "./sidebar";
 import { FileService } from "./file";
 import { PDF_NOTE_VIEW, PdfNoteView } from "./pdfNoteView";
 import { ExampleSettingTab } from "./ExampleSettingTab";
-import { FolderSuggest } from "./FolderSuggest";
+import { FilePickerModal } from "./FilePickerModal";
 
 interface PdfViewer {
 	eventBus: {
@@ -16,7 +16,7 @@ interface PdfViewer {
 
 export default class PDFNotesPlugin extends Plugin {
 	saveSettings() {
-		throw new Error('Method not implemented.');
+		throw new Error("Method not implemented.");
 	}
 	pluginOpen = true;
 	pdfViewer: PdfViewer | null = null;
@@ -43,7 +43,10 @@ export default class PDFNotesPlugin extends Plugin {
 		);
 		this.fileService = container.get<FileService>(TYPES.FileService);
 
-		this.settings = Object.assign({ folderLocation: "" }, await this.loadData());
+		this.settings = Object.assign(
+			{ folderLocation: "" },
+			await this.loadData()
+		);
 
 		this.addSettingTab(new ExampleSettingTab(this.app, this));
 
@@ -58,6 +61,14 @@ export default class PDFNotesPlugin extends Plugin {
 			callback: async () => {
 				this.pluginOpen = !this.pluginOpen;
 				await this.openPDFWithNotes();
+			},
+		});
+
+		this.addCommand({
+			id: "open-file-picker-modal",
+			name: "Relier un fichier via popover",
+			callback: () => {
+				new FilePickerModal(this.app, this).open();
 			},
 		});
 

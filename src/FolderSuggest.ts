@@ -6,7 +6,7 @@ export class FolderSuggest extends AbstractInputSuggest<string> {
     constructor(app: App, inputEl: HTMLInputElement) {
         super(app, inputEl);
         // Get all folders and include root folder
-        this.folders = ["/"].concat(this.app.vault.getAllFolders().map(folder => folder.path));
+        this.folders = ["/"].concat(this.app.vault.getFiles().map(folder => folder.path));
     }
 
     getSuggestions(inputStr: string): string[] {

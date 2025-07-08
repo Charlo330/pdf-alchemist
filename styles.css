@@ -39,6 +39,13 @@
 	padding: 0%;
 }
 
+.file-picker-input {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	
+}
+
 .pdf-empty {
 	display: flex;
 	justify-content: center;

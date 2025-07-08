@@ -57,8 +57,14 @@
 
 .pdf-div {
 	display: flex;
-	align-items: center;
 	gap: 10px;
+	align-items: center;
+}
+
+.pdf-page-note {
+	vertical-align: text-top;
+	padding: 0;
+	margin: 0;
 }
 
 .pdf-button-refresh {
@@ -71,11 +77,13 @@
 	flex-wrap: wrap;
 	min-width: 0;
 	min-height: 0;
+
 }
 
 .pdf-test-parent {
 	position: relative;
   	display: inline-block;
+	margin-top: 0.3rem;
 }
 
 .pdf-test-element {

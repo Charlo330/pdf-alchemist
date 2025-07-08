@@ -1,3 +1,6 @@
+.pdf-subtitle {
+	display: none;
+}
 .pdf-notes-container {
 	display: flex;
 	height: 100%;
@@ -65,7 +68,30 @@
 .pdf-history {
 	display: flex;
 	gap: 5px;
-	width: 100%;
+	flex-wrap: wrap;
+	min-width: 0;
+	min-height: 0;
+}
+
+.pdf-test-parent {
+	position: relative;
+  	display: inline-block;
+}
+
+.pdf-test-element {
+display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #333;
+  color: white;
+  padding: 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.pdf-test-parent:hover .pdf-test-element {
+	display: block;
 }
 
 .pdf-history-separator {

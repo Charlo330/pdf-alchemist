@@ -1,4 +1,4 @@
-import { App, Modal, Setting } from "obsidian";
+import { App, Modal } from "obsidian";
 import { FolderSuggest } from "./FolderSuggest"; // ou FileSuggest si adapté
 
 export class FilePickerModal extends Modal {
@@ -37,8 +37,6 @@ export class FilePickerModal extends Modal {
         const val = (input as HTMLInputElement).value;
         console.log("Valeur sélectionnée :", val);
         // Ici, tu peux ajouter la logique pour utiliser le chemin sélectionné
-
-
 
         this.close();
       }

@@ -11,11 +11,13 @@ export const PDF_NOTE_VIEW = "pdf-note-view";
 
 export class PdfNoteView extends ItemView {
 	titlePageElement: HTMLElement;
+	titleSubFileElement: HTMLElement | null = null;
 	historyElement: HTMLElement | null = null;
 	editor: EmbeddableMarkdownEditor;
 	sidebarLeaf: WorkspaceLeaf | null = null;
 	container: HTMLElement;
 	private subNoteStack: string[] = [];
+	testElement: HTMLElement | null = null;
 
 	constructor(
 		leaf: WorkspaceLeaf,
@@ -48,6 +50,12 @@ export class PdfNoteView extends ItemView {
 			cls: "pdf-title",
 		});
 
+		this.titleSubFileElement = this.container.createEl("h5", {
+			cls: "pdf-subtitle",
+		});
+
+		this.titleSubFileElement.style.display = "none";
+
 		const div = this.container.createDiv({ cls: "pdf-div" });
 
 		const prevButton = div.createEl("button", {
@@ -64,8 +72,6 @@ export class PdfNoteView extends ItemView {
 			cls: "pdf-page-note",
 		});
 
-		this.historyElement = this.container.createDiv({ cls: "pdf-history" });
-
 		this.container.createEl("hr", { cls: "pdf-notes" });
 
 		prevButton.addEventListener("click", async () => {
@@ -81,6 +87,9 @@ export class PdfNoteView extends ItemView {
 				);
 
 				prevButton.style.display = "none";
+				if (this.titleSubFileElement) {
+					this.titleSubFileElement.style.display = "none";
+				}
 
 				this.noteService.setInSubNote(false);
 				await this.fileService.initialiseMdFile(filename);
@@ -88,35 +97,51 @@ export class PdfNoteView extends ItemView {
 			} else {
 				this.noteService.setInSubNote(true);
 				await this.openSubNote(filename);
+				if (this.titleSubFileElement) {
+					this.titleSubFileElement.style.display = "block";
+					this.titleSubFileElement.setText(`Subfile: ${filename}`);
+				}
 			}
 		});
 
 		prevButton.style.display = "none";
+
+		const hierarchyHoverButton = div.createDiv({
+			text: "test",
+			cls: "pdf-test-parent",
+		});
+
+		this.historyElement = this.container.createDiv({
+			cls: "pdf-test-element",
+		});
+		hierarchyHoverButton.appendChild(this.historyElement);
+
+		setIcon(hierarchyHoverButton, "history");
 
 		const savedNotes = await this.noteService.getSavedNotes(
 			this.noteService.getCurrentPage()
 		);
 
 		const onClickLink = async (event: MouseEvent) => {
-		const target = event.target as HTMLElement;
-		prevButton.style.display = "inline-block";
-		this.noteService.setInSubNote(true);
+			const target = event.target as HTMLElement;
+			prevButton.style.display = "inline-block";
+			this.noteService.setInSubNote(true);
 
-		const filename = target.textContent;
+			const filename = target.textContent;
 
-		if (!filename) return;
+			if (!filename) return;
 
-		const mdFile = this.fileService.getMdFile();
+			const mdFile = this.fileService.getMdFile();
 
-		if (mdFile) {
-			console.log("mdfile", mdFile.basename);
-			this.subNoteStack.push(mdFile.basename);
-		}
+			if (mdFile) {
+				console.log("mdfile", mdFile.basename);
+				this.subNoteStack.push(mdFile.basename);
+			}
 
-		this.openSubNote(filename);
+			this.openSubNote(filename);
 
-		this.addHistory(filename);
-	}
+			this.addHistory(filename);
+		};
 
 		this.editor = createEmbeddableMarkdownEditor(this.app, this.container, {
 			value: savedNotes,
@@ -140,12 +165,18 @@ export class PdfNoteView extends ItemView {
 
 	async addHistory(fileName: string) {
 		if (this.historyElement) {
-			this.historyElement.createEl("span", {
-				text: fileName
-			}).createEl("span", {
-				text: " >",
-				cls: "pdf-history-separator",
-			});
+			this.historyElement
+				.createDiv({
+					text: fileName,
+				})
+				.createSpan({
+					text: " >",
+					cls: "pdf-history-separator",
+				});
+		}
+		if (this.titleSubFileElement) {
+			this.titleSubFileElement.style.display = "block";
+			this.titleSubFileElement.setText(`Subfile: ${fileName}`);
 		}
 	}
 
@@ -175,7 +206,11 @@ export class PdfNoteView extends ItemView {
 			}
 
 			if (this.noteService.getFileName()) {
-				this.addHistory(this.noteService.getFileName() as string);
+				await this.addHistory(this.noteService.getFileName() as string);
+				
+				if (this.titleSubFileElement) {
+					this.titleSubFileElement.style.display = "none";
+				}
 			}
 
 			const elem = this.container.find(".nav-button");
@@ -189,7 +224,10 @@ export class PdfNoteView extends ItemView {
 		);
 		console.log("pdfFile", this.fileService.getPdfFile());
 		console.log("mdFile", this.fileService.getMdFile());
-		console.log("content", this.noteService.getSavedNotes(this.noteService.getCurrentPage()));
+		console.log(
+			"content",
+			this.noteService.getSavedNotes(this.noteService.getCurrentPage())
+		);
 	}
 
 	emptySidebar() {

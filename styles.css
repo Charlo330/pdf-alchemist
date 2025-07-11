@@ -77,7 +77,15 @@
 	flex-wrap: wrap;
 	min-width: 0;
 	min-height: 0;
+}
 
+.timer {
+	position: absolute;
+	top: 8px;
+	left: 12px;
+	color: var(--text-accent);
+	padding: 4px 8px;
+	border-radius: 6px;
 }
 
 .pdf-test-parent {

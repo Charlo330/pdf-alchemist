@@ -6,6 +6,7 @@ import { FileService } from "./file";
 import { PDF_NOTE_VIEW, PdfNoteView } from "./pdfNoteView";
 import { ExampleSettingTab } from "./ExampleSettingTab";
 import { FilePickerModal } from "./FilePickerModal";
+import { TimedModal } from "./TimeModal";
 
 interface PdfViewer {
 	eventBus: {
@@ -68,7 +69,7 @@ export default class PDFNotesPlugin extends Plugin {
 			id: "open-file-picker-modal",
 			name: "Relier un fichier via popover",
 			callback: () => {
-				new FilePickerModal(this.app, this).open();
+				new FilePickerModal(this.app, this, this.fileService).open();
 			},
 		});
 
@@ -107,6 +108,27 @@ export default class PDFNotesPlugin extends Plugin {
 				}
 			})
 		);
+
+		this.registerEvent(
+			this.app.workspace.on("file-menu", (menu, file) => {
+				menu.addItem((item) => {
+					item.setTitle("See linked note")
+						.setIcon("zap") // icône Obsidian (facultatif)
+						.onClick(async () => {
+							let link = null;
+							if ((file instanceof TFile) && file.extension == "pdf") {
+								link = await this.fileService.pdfNoteLinker?.getNoteForPdf(file.path)
+							} else if (file instanceof TFile && file.extension == "md") {
+								link = await this.fileService.pdfNoteLinker?.getPdfForNote(file.path)
+							}
+
+							if (link !== undefined) {
+								new TimedModal(this.app, link).open();
+							}
+						});
+				});
+			})
+		);
 	}
 
 	async initializeSidebar() {
@@ -137,6 +159,7 @@ export default class PDFNotesPlugin extends Plugin {
 				view.emptySidebar();
 				return;
 			} else {
+				//this.noteService.openPdfInCenter(this.app, file);
 				await this.openPDFWithNotes();
 				await this.changePdf();
 				this.detachEvent(this.funct);

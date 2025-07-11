@@ -1,49 +1,61 @@
 import { App, Modal } from "obsidian";
-import { FolderSuggest } from "./FolderSuggest"; // ou FileSuggest si adapté
+import { FileTypeEnum, FolderSuggest } from "./FolderSuggest"; // ou FileSuggest si adapté
+import { FileService } from "./file";
 
 export class FilePickerModal extends Modal {
-  plugin: any; // ton plugin
+	plugin: any; // ton plugin
+	fileService: FileService; // service de gestion des fichiers
 
-  constructor(app: App, plugin: any) {
-    super(app);
-    this.plugin = plugin;
-  }
+	constructor(app: App, plugin: any, fileService: FileService) {
+		super(app);
+		this.plugin = plugin;
+		this.fileService = fileService;
+	}
 
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
+	onOpen() {
+		const { contentEl } = this;
+		contentEl.empty();
 
-    const h2 = contentEl.createEl("h2", { text: "Repair PDF Markdown Link" });
-    h2.style.textAlign = "center";
+		const h2 = contentEl.createEl("h2", {
+			text: "Repair PDF Markdown Link",
+		});
+		h2.style.textAlign = "center";
 
-	const inputContainer = contentEl.createDiv({ cls: "file-picker-input" });
-	
-	new FolderSuggest(this.app, inputContainer.createEl("input", {
-		type: "text",
-		placeholder: "PDF Path",
-		cls: "file-picker-input-field"
-	}));
+		const inputContainer = contentEl.createDiv({
+			cls: "file-picker-input",
+		});
+		const inputElem1 = inputContainer.createEl("input", {
+			type: "text",
+			placeholder: "PDF File Name",
+			cls: "file-picker-input-field",
+		});
 
-	new FolderSuggest(this.app, inputContainer.createEl("input", {
-		type: "text",
-		placeholder: "Markdown Path",
-		cls: "file-picker-input-field"
-	}));
+		const inputElem2 = inputContainer.createEl("input", {
+			type: "text",
+			placeholder: "MD File Name",
+			cls: "file-picker-input-field",
+		});
 
-    const btn = inputContainer.createEl("button", { text: "Validate" });
-    btn.onclick = () => {
-      const input = contentEl.querySelector("input");
-      if (input) {
-        const val = (input as HTMLInputElement).value;
-        console.log("Valeur sélectionnée :", val);
-        // Ici, tu peux ajouter la logique pour utiliser le chemin sélectionné
+		new FolderSuggest(this.app, inputElem1, FileTypeEnum.PDF);
 
-        this.close();
-      }
-    };
-  }
+		new FolderSuggest(this.app, inputElem2, FileTypeEnum.MARKDOWN);
 
-  onClose() {
-    this.contentEl.empty();
-  }
+		const btn = inputContainer.createEl("button", { text: "Validate" });
+		btn.onclick = () => {
+			if (inputElem1.value && inputElem2.value) {
+				this.linkFiles(inputElem1.value, inputElem2.value);
+				console.log("tout est beau");
+				this.close();
+			}
+		};
+	}
+
+
+	linkFiles(pdfFilepath: string, mdFilepath: string) {
+		this.fileService.pdfNoteLinker?.linkPdfToNote(pdfFilepath, mdFilepath);
+	}
+
+	onClose() {
+		this.contentEl.empty();
+	}
 }

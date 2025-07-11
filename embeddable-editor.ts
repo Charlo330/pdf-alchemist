@@ -289,9 +289,9 @@ export class EmbeddableMarkdownEditor {
 					if (
 						target.tagName == "A" &&
 						target.hasAttribute("href") &&
-						target.parentElement?.className.contains(
+						(target.parentElement?.className.contains(
 							"cm-hmd-internal"
-						)
+						) || target.parentElement?.parentElement?.className.contains("cm-hmd-internal"))
 					) {
 						this.options.onClickLink(event);
 						event.stopImmediatePropagation();

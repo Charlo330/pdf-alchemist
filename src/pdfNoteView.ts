@@ -135,6 +135,12 @@ export class PdfNoteView extends ItemView {
 
 			if (!filename) return;
 
+			console.log("test", target.parentElement?.parentElement)
+
+			if (target.parentElement?.parentElement?.className.contains("cm-hmd-internal-link")) {
+				await this.app.vault.create(filename + ".md", "");
+			}
+
 			const mdFile = this.fileService.getMdFile();
 
 			if (mdFile) {

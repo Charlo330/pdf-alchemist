@@ -144,16 +144,15 @@ export default class PDFNotesPlugin extends Plugin {
 	}
 
 	async initializeSidebar() {
+		const leaves = this.app.workspace.getLeavesOfType(PDF_NOTE_VIEW);
+		const view = leaves[0].view as PdfNoteView;
+
+		view.emptySidebar();
 
 		this.app.workspace.on("file-open", async (file) => {
 			await this.onFileChange(file);
 			if (!file || file.extension == "md") return;
 		});
-
-		const leaves = this.app.workspace.getLeavesOfType(PDF_NOTE_VIEW);
-		const view = leaves[0].view as PdfNoteView;
-
-		view.emptySidebar();
 
 		const currentFile = this.fileService.getPdfFile();
 

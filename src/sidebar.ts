@@ -68,14 +68,6 @@ export class SidebarService {
 	detachSidebar() {
 		this.sidebarLeaf?.detach();
 	}
-
-	isEditingNotes(): boolean {
-		const activeLeaf = this.app.workspace;
-		if (!activeLeaf) return false;
-	
-		const view = activeLeaf.view;
-		return view && view.getViewType() === "markdown" && view.file?.basename.includes("notes");
-	}
 	
 
 }

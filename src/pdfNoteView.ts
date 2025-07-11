@@ -39,6 +39,10 @@ export class PdfNoteView extends ItemView {
 		return "wand-sparkles";
 	}
 
+	canNavigate(): boolean {
+		return false;
+	}
+
 	async onOpen() {
 		this.container = this.containerEl.children[1] as HTMLElement;
 		this.container.classList.add("pdf-notes-sidebar");
@@ -161,6 +165,8 @@ export class PdfNoteView extends ItemView {
 			onClickLink: onClickLink,
 			cls: "pdf-editor",
 		});
+
+		this.updateNotesSidebar();
 	}
 
 	async addHistory(fileName: string) {
@@ -207,7 +213,7 @@ export class PdfNoteView extends ItemView {
 
 			if (this.noteService.getFileName()) {
 				await this.addHistory(this.noteService.getFileName() as string);
-				
+
 				if (this.titleSubFileElement) {
 					this.titleSubFileElement.style.display = "none";
 				}

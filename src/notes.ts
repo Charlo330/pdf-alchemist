@@ -37,7 +37,6 @@ export class NoteService {
 
 	async saveNotes(page: number, content: string) {
 		const pdfFile = this.fileService.getPdfFile();
-		console.log("pdfFile", pdfFile);
 
 		if (!pdfFile) return;
 		console.log("test");
@@ -48,7 +47,6 @@ export class NoteService {
 			notesFile = this.fileService.getMdFile();
 			notesContent = content;
 		} else {
-			console.log("alloooooo", this.notes);
 			if (!this.notes[pdfFile.basename]) {
 				this.notes[pdfFile.basename] = {};
 			}
@@ -75,21 +73,10 @@ export class NoteService {
 	}
 
 	async loadNotesFromFile() {
-		const pdfFile = this.fileService.getPdfFile();
-		console.log("Loading notes for PDF file:", pdfFile?.path);
-		if (!pdfFile) return;
-
-		if (pdfFile.extension !== "pdf") {
-			return;
-		}
-
 		const noteFile = this.fileService.getMdFile();
-
-		//const notesFile = await this.app.vault.getAbstractFileByPath(notesPath) as TFile;
 
 		if (noteFile) {
 			const content = await this.app.vault.read(noteFile);
-			console.log("Content loaded from note file:", content);
 			const fileName = noteFile.basename;
 
 			if (!content && this.notes[fileName]) {
@@ -98,7 +85,6 @@ export class NoteService {
 			}
 
 			const loadedNotes = this.parseMarkdownNotes(content, fileName);
-			console.log("Parsed notes:", loadedNotes);
 
 			// Fusionner les nouvelles notes avec celles déjà en mémoire
 			if (!this.notes[fileName]) {
@@ -134,11 +120,6 @@ export class NoteService {
 		}
 
 		return notes;
-	}
-
-	async refresh() {
-		await this.fileService.initialiseMdFile();
-		await this.loadNotesFromFile();
 	}
 
 	getCurrentPage() {

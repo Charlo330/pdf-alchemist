@@ -23,11 +23,10 @@ export class FileService {
 	}
 
 	async changePdfFile(file: TFile | null) {
-		this.pdfFile = file;
-		if (!this.pdfFile || this.pdfFile.extension !== "pdf") {
-			this.pdfFile = null;
+		if (!file || file.extension !== "pdf") {
 			return;
 		}
+		this.pdfFile = file;
 		await this.initialiseMdFile();
 	}
 
@@ -43,9 +42,11 @@ export class FileService {
 
 		console.log("Loading notes from PDF file:", this.pdfFile.path);
 
-		const noteFilepath = await this.getNoteLinkFromPdf(
-			this.pdfFile.path
+		const noteFilepath = this.getNoteLinkFromPdf(
+			this.getPdfFile().path
 		);
+
+		console.log("Note file path:", noteFilepath);
 
 		if (!noteFilepath) {
 			new Notice(
@@ -88,7 +89,13 @@ export class FileService {
 		return this.mdFile ? this.mdFile.path : "";
 	}
 	getPdfFile() {
-		return this.pdfFile;
+		for (const leaf of this.app.workspace.getLeavesOfType("pdf")) {
+			const view = leaf.view;
+			// Selon comment le PDF est géré, parfois tu peux faire :
+			if (view && view.file?.extension === "pdf") {
+				return view.file;
+			}
+		}
 	}
 
 	getPdfLinkFromNote(notePath: string): string | null {
@@ -104,6 +111,7 @@ export class FileService {
 			new Notice("PdfNoteLinker is not initialized.");
 			return null;
 		}
+		console.log("getNoteLinkFromPdf", pdfPath);
 		return this.pdfNoteLinker.getNoteForPdf(pdfPath);
 	}
 

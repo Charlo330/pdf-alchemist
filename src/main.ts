@@ -25,7 +25,7 @@ export default class PDFNotesPlugin extends Plugin {
 		this.noteService.setCurrentPage(event.pageNumber);
 		const leaves = this.app.workspace.getLeavesOfType(PDF_NOTE_VIEW);
 		const view = leaves[0].view as PdfNoteView;
-
+		console.log("test")
 		await view.updateNotesSidebar();
 	};
 	noteService: NoteService;
@@ -116,10 +116,22 @@ export default class PDFNotesPlugin extends Plugin {
 						.setIcon("zap") // icône Obsidian (facultatif)
 						.onClick(async () => {
 							let link = null;
-							if ((file instanceof TFile) && file.extension == "pdf") {
-								link = await this.fileService.pdfNoteLinker?.getNoteForPdf(file.path)
-							} else if (file instanceof TFile && file.extension == "md") {
-								link = await this.fileService.pdfNoteLinker?.getPdfForNote(file.path)
+							if (
+								file instanceof TFile &&
+								file.extension == "pdf"
+							) {
+								link =
+									await this.fileService.pdfNoteLinker?.getNoteForPdf(
+										file.path
+									);
+							} else if (
+								file instanceof TFile &&
+								file.extension == "md"
+							) {
+								link =
+									await this.fileService.pdfNoteLinker?.getPdfForNote(
+										file.path
+									);
 							}
 
 							if (link !== undefined) {
@@ -132,36 +144,39 @@ export default class PDFNotesPlugin extends Plugin {
 	}
 
 	async initializeSidebar() {
-		const currentFile = this.app.workspace.getActiveFile();
+
+		this.app.workspace.on("file-open", async (file) => {
+			await this.onFileChange(file);
+			if (!file || file.extension == "md") return;
+		});
+
+		const leaves = this.app.workspace.getLeavesOfType(PDF_NOTE_VIEW);
+		const view = leaves[0].view as PdfNoteView;
+
+		view.emptySidebar();
+
+		const currentFile = this.fileService.getPdfFile();
 
 		if (!currentFile) return;
 
-		await this.openPDFWithNotes();
-
-		this.pdfViewer = findPdfViewer();
-
-		this.app.workspace.on("file-open", async (file) => {
-			if (!file || this.fileService.pdfFile === file) return;
-
-			await this.fileService.changePdfFile(file);
-			await this.onFileChange(file);
-		});
+		this.openPDFWithNotes();
 
 		this.pluginOpen = await this.sidebarService.isSidebarOpen();
 	}
 
-	async onFileChange(file: TFile) {
+	async onFileChange(file: TFile | null) {
 		if (this.pluginOpen) {
-			if (file.extension !== "pdf") {
-				const leaves =
-					this.app.workspace.getLeavesOfType(PDF_NOTE_VIEW);
-				const view = leaves[0].view as PdfNoteView;
+
+			const leaves = this.app.workspace.getLeavesOfType(PDF_NOTE_VIEW);
+			const view = leaves[0].view as PdfNoteView;
+
+			if (file && file.extension !== "pdf") {
 				view.emptySidebar();
 				return;
-			} else {
-				//this.noteService.openPdfInCenter(this.app, file);
+			} else if (file && file.extension === "pdf") {
+				await this.fileService.changePdfFile(file);
 				await this.openPDFWithNotes();
-				await this.changePdf();
+				view.onOpen();
 				this.detachEvent(this.funct);
 
 				// Ajoute un écouteur d'événement pour détecter le changement de page
@@ -173,14 +188,6 @@ export default class PDFNotesPlugin extends Plugin {
 	async openPDFWithNotes() {
 		await this.noteService.loadNotesFromFile();
 		await this.sidebarService.createNotesSidebar();
-	}
-
-	async changePdf() {
-		const leaves = this.app.workspace.getLeavesOfType(PDF_NOTE_VIEW);
-		const view = leaves[0].view as PdfNoteView;
-
-		view.onOpen();
-		view.updateNotesSidebar();
 	}
 
 	async attachEvent(fct: (event: { pageNumber: number }) => Promise<void>) {

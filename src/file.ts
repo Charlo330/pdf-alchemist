@@ -91,7 +91,7 @@ export class FileService {
 	getPdfFile() {
 		for (const leaf of this.app.workspace.getLeavesOfType("pdf")) {
 			const view = leaf.view;
-			// Selon comment le PDF est géré, parfois tu peux faire :
+
 			if (view && view.file?.extension === "pdf") {
 				return view.file;
 			}

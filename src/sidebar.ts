@@ -16,8 +16,6 @@ const TYPES = {
 export class SidebarService {
 
 	private sidebarLeaf: WorkspaceLeaf | null = null;
-	private editor: EmbeddableMarkdownEditor | null = null;
-	private titlePageElement: HTMLElement | null = null;
 
 	constructor(
 		@inject(TYPES.App)
@@ -25,8 +23,6 @@ export class SidebarService {
 		@inject(TYPES.NoteService)
 		public noteService: NoteService
 	) {}
-
-
 
 	async createNotesSidebar() {
 		let leaf = this.app.workspace.getLeavesOfType(PDF_NOTE_VIEW)[0];
@@ -52,22 +48,8 @@ export class SidebarService {
 		const leaves = this.app.workspace.getLeavesOfType(PDF_NOTE_VIEW);
 		return leaves.length > 0;
 	}
-	
-
-	async updateNotesSidebar() {
-		if (!this.sidebarLeaf) return;
-
-		if (this.editor) {
-			const content  = await this.noteService.getSavedNotes(this.noteService.getCurrentPage());
-			this.editor.value = content as string;
-		}
-
-		this.titlePageElement?.setText(`Page ${this.noteService.getCurrentPage()}`);
-	}
 
 	detachSidebar() {
 		this.sidebarLeaf?.detach();
 	}
-	
-
 }

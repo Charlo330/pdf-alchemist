@@ -71,6 +71,8 @@ export class PdfNoteView extends ItemView {
 
 		setIcon(prevButton, "chevron-left");
 
+		prevButton.disabled = true;
+
 		this.titlePageElement = div.createEl("h3", {
 			text: `Page ${this.noteService.getCurrentPage()}`,
 			cls: "pdf-page-note",
@@ -90,7 +92,7 @@ export class PdfNoteView extends ItemView {
 					this.noteService.getCurrentPage()
 				);
 
-				prevButton.style.display = "none";
+				prevButton.disabled = true;
 				if (this.titleSubFileElement) {
 					this.titleSubFileElement.style.display = "none";
 				}
@@ -107,8 +109,6 @@ export class PdfNoteView extends ItemView {
 				}
 			}
 		});
-
-		prevButton.style.display = "none";
 
 		const hierarchyHoverButton = div.createDiv({
 			text: "test",
@@ -128,14 +128,11 @@ export class PdfNoteView extends ItemView {
 
 		const onClickLink = async (event: MouseEvent) => {
 			const target = event.target as HTMLElement;
-			prevButton.style.display = "inline-block";
 			this.noteService.setInSubNote(true);
 
 			const filename = target.textContent;
 
 			if (!filename) return;
-
-			console.log("test", target.parentElement?.parentElement)
 
 			if (target.parentElement?.parentElement?.className.contains("cm-hmd-internal-link")) {
 				await this.app.vault.create(filename + ".md", "");
@@ -144,21 +141,19 @@ export class PdfNoteView extends ItemView {
 			const mdFile = this.fileService.getMdFile();
 
 			if (mdFile) {
-				console.log("mdfile", mdFile.basename);
 				this.subNoteStack.push(mdFile.basename);
 			}
 
 			this.openSubNote(filename);
 
 			this.addHistory(filename);
+			prevButton.disabled = false;
 		};
 
 		this.editor = createEmbeddableMarkdownEditor(this.app, this.container, {
 			value: savedNotes,
 			placeholder: "Type here...",
 			onChange: () => {
-				console.log(this.editor.value);
-				console.log(this.noteService.getCurrentPage());
 				this.noteService.saveNotes(
 					this.noteService.getCurrentPage(),
 					this.editor.value
@@ -173,6 +168,8 @@ export class PdfNoteView extends ItemView {
 		});
 
 		this.updateNotesSidebar();
+
+		prevButton.style.display = "inline-block";
 	}
 
 	async addHistory(fileName: string) {
@@ -224,21 +221,12 @@ export class PdfNoteView extends ItemView {
 					this.titleSubFileElement.style.display = "none";
 				}
 			}
-
-			const elem = this.container.find(".nav-button");
-
-			if (elem) {
-				elem.style.display = "None";
-			}
+			const prevButton = this.container.querySelector(
+				".nav-button"
+			) as HTMLButtonElement;
 		}
 		this.titlePageElement?.setText(
 			`Page ${this.noteService.getCurrentPage()}`
-		);
-		console.log("pdfFile", this.fileService.getPdfFile());
-		console.log("mdFile", this.fileService.getMdFile());
-		console.log(
-			"content",
-			this.noteService.getSavedNotes(this.noteService.getCurrentPage())
 		);
 	}
 

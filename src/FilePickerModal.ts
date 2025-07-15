@@ -3,8 +3,8 @@ import { FileTypeEnum, FolderSuggest } from "./FolderSuggest"; // ou FileSuggest
 import { FileService } from "./file";
 
 export class FilePickerModal extends Modal {
-	plugin: any; // ton plugin
-	fileService: FileService; // service de gestion des fichiers
+	plugin: any;
+	fileService: FileService;
 
 	constructor(app: App, plugin: any, fileService: FileService) {
 		super(app);
@@ -44,7 +44,6 @@ export class FilePickerModal extends Modal {
 		btn.onclick = () => {
 			if (inputElem1.value && inputElem2.value) {
 				this.linkFiles(inputElem1.value, inputElem2.value);
-				console.log("tout est beau");
 				this.close();
 			}
 		};

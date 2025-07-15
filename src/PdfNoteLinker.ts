@@ -3,7 +3,7 @@ import { App } from "obsidian";
 export class PdfNoteLinker {
 	private app: App;
 	private index: Record<string, string> = {};
-	private readonly indexPath = "pdf-note-index.json"; // ou "data/pdf-note-index.json"
+	private readonly indexPath = "pdf-note-index.json";
 
 	constructor(app: App) {
 		this.app = app;
@@ -46,9 +46,6 @@ export class PdfNoteLinker {
 	}
 
 	public getPdfForNote(notePath: string): string | null {
-		console.log(notePath)
-		console.log("index ", this.index);
-		console.log(this.index)
 		const pdfPath = Object.keys(this.index).find(
 			(key) => this.index[key] === notePath
 		);

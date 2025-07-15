@@ -39,7 +39,7 @@ export class NoteService {
 		const pdfFile = this.fileService.getPdfFile();
 
 		if (!pdfFile) return;
-		console.log("test");
+		
 		let notesFile;
 		let notesContent = "";
 
@@ -84,7 +84,7 @@ export class NoteService {
 				return;
 			}
 
-			const loadedNotes = this.parseMarkdownNotes(content, fileName);
+			const loadedNotes = this.parseMarkdownNotes(content);
 
 			// Fusionner les nouvelles notes avec celles déjà en mémoire
 			if (!this.notes[fileName]) {
@@ -94,20 +94,8 @@ export class NoteService {
 		}
 	}
 
-	async openPdfInCenter(app: App, pdfFile: TFile) {
-		const centralLeaf = app.workspace.getMostRecentLeaf(); // centre ou actif
-		if (centralLeaf) {
-			await centralLeaf.openFile(pdfFile);
-		} else {
-			// fallback, si aucune leaf existante
-			const newLeaf = app.workspace.getLeaf(false);
-			await newLeaf.openFile(pdfFile);
-		}
-	}
-
 	parseMarkdownNotes(
 		content: string,
-		fileName: string
 	): { [page: number]: string } {
 		const notes: { [page: number]: string } = {};
 		const matches = content.matchAll(

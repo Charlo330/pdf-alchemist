@@ -1,4 +1,5 @@
-import { PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting } from "obsidian";
+import PDFNotesPlugin from "src/main";
 
 export class PdfNotesSettingTab extends PluginSettingTab {
   constructor(app: App, private plugin: PDFNotesPlugin) {

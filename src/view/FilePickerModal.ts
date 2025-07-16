@@ -1,5 +1,6 @@
 import { App, Modal } from "obsidian";
 import { FileTypeEnum, FolderSuggest } from "./FolderSuggest";
+import { PdfNotesController } from "src/controller/PdfNotesController";
 
 export class FilePickerModal extends Modal {
   constructor(

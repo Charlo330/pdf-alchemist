@@ -8,12 +8,27 @@ import { TYPES } from "src/container";
 
 @injectable()
 export class PdfNotesService {
+	private noteRepo: NoteRepository;
+	private isInitialized = false;
+
 	constructor(
-		@inject(TYPES.NoteRepository) private noteRepo: NoteRepository,
+		@inject(TYPES.NoteRepository) noteRepo: NoteRepository,
 		@inject(TYPES.LinkRepository) private linkRepo: ILinkRepository,
 		@inject(TYPES.StateManager) private stateManager: AppState,
 		@inject(TYPES.App) private app: App
-	) {}
+	) {
+		this.noteRepo = noteRepo;
+	}
+
+	private async ensureInitialized(): Promise<void> {
+		if (!this.isInitialized) {
+			const pdfPath = this.stateManager.currentPdf?.path;
+			if (pdfPath) {
+				await this.noteRepo.initialize(pdfPath);
+				this.isInitialized = true;
+			}
+		}
+	}
 
 	async linkPdfToNote(pdfPath: string, notePath: string): Promise<void> {
 		const link: PdfNoteLink = { pdfPath, notePath };
@@ -21,11 +36,16 @@ export class PdfNotesService {
 	}
 
 	async getNotesForPage(page: number): Promise<string | null> {
+		await this.ensureInitialized();
 		return await this.noteRepo.findByPage(page);
 	}
 
 	async saveNote(): Promise<void> {
-		await this.noteRepo.save();
+		await this.ensureInitialized();
+		const pdfPath = this.stateManager.currentPdf;
+		if (pdfPath) {
+			await this.noteRepo.save(pdfPath);
+		}
 	}
 
 	async getLinkedNoteFile(): Promise<TFile | null> {
@@ -47,7 +67,6 @@ export class PdfNotesService {
 		return link?.pdfPath || null;
 	}
 
-	// good
 	async createNoteFileIfNotExists(): Promise<string> {
 		const pdf = this.stateManager.currentPdf;
 		const existingLink = await this.linkRepo.findByPdf(pdf?.path || "");
@@ -55,12 +74,10 @@ export class PdfNotesService {
 			return existingLink.notePath;
 		}
 
-		const notePath =
-			pdf?.path.replace(/\.pdf$/, ".md") || "";	
+		const notePath = pdf?.path.replace(/\.pdf$/, ".md") || "";	
 
 		if (!(await this.app.vault.adapter.exists(notePath))) {
-			// TODO
-			//await this.app.vault.create(notePath, settings.noteTemplate);
+			// TODO: Use settings.noteTemplate when available
 			await this.app.vault.create(notePath, "");
 		}
 
@@ -70,9 +87,18 @@ export class PdfNotesService {
 
 	async updatePdfPath(oldPath: string, newPath: string): Promise<void> {
 		await this.linkRepo.updatePdfPath(oldPath, newPath);
+		// Reset initialization flag to force re-initialization with new path
+		this.isInitialized = false;
 	}
 
 	async updateNotePath(oldPath: string, newPath: string): Promise<void> {
 		await this.linkRepo.updateNotePath(oldPath, newPath);
+		// Reset initialization flag to force re-initialization with new path
+		this.isInitialized = false;
+	}
+
+	// Call this when PDF changes to reset initialization
+	async onPdfChanged(): Promise<void> {
+		this.isInitialized = false;
 	}
 }

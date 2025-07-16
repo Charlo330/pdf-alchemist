@@ -19,6 +19,8 @@ export class PdfNotesController {
     }
 
     this.stateManager.setCurrentPdf(file);
+    // Notify the service that PDF has changed
+    await this.pdfNotesService.onPdfChanged();
   }
 
   async onPageChanged(page: number): Promise<void> {
@@ -36,8 +38,13 @@ export class PdfNotesController {
     const state = this.stateManager.getState();
     if (!state.currentPdf) return '';
 
-    const note = await this.pdfNotesService.getNotesForPage(state.currentPage);
-    return note || '';
+    try {
+      const note = await this.pdfNotesService.getNotesForPage(state.currentPage);
+      return note || '';
+    } catch (error) {
+      console.warn('Failed to get note for current page:', error);
+      return '';
+    }
   }
 
   async linkPdfToNote(pdfPath: string, notePath: string): Promise<void> {

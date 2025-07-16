@@ -1,23 +1,28 @@
 import { inject, injectable } from "inversify";
 import { App, TFile } from "obsidian";
-import { container, TYPES } from "src/container";
-import { PdfNotesService } from "src/Service/PdfNotesService";
+import { TYPES } from "src/container";
 import { INoteRepository } from "src/type/INoteRepository";
+import type { ILinkRepository } from "src/type/ILinkRepository";
 
 @injectable()
 export class NoteRepository implements INoteRepository {
 	private notes: string[] = [];
 
-	constructor(@inject(TYPES.App) private app: App) {}
+	constructor(
+		@inject(TYPES.App) private app: App,
+		@inject(TYPES.LinkRepository) private linkRepo: ILinkRepository
+	) {}
 
-	async initialize() {
-		const pdfNoteService = container.get<PdfNotesService>(
-			TYPES.PdfNotesService
-		);
-		const noteFile = await pdfNoteService.getLinkedNoteFile();
-
-		if (noteFile == null) {
+	async initialize(pdfPath: string) {
+		const link = await this.linkRepo.findByPdf(pdfPath);
+		
+		if (!link) {
 			throw new Error("No linked note file found.");
+		}
+
+		const noteFile = this.app.vault.getFileByPath(link.notePath);
+		if (!noteFile) {
+			throw new Error(`Note file not found: ${link.notePath}`);
 		}
 
 		const content = await this.app.vault.read(noteFile);
@@ -29,7 +34,7 @@ export class NoteRepository implements INoteRepository {
 
 		const loadedNotes = this.parseMarkdownNotes(content);
 
-		// Fusionner les nouvelles notes avec celles déjà en mémoire
+		// Merge new notes with existing ones in memory
 		if (!this.notes) {
 			this.notes = [];
 		}
@@ -50,23 +55,20 @@ export class NoteRepository implements INoteRepository {
 		return notes;
 	}
 
-	async save(): Promise<void> {
-		const pdfNoteService = container.get<PdfNotesService>(
-			TYPES.PdfNotesService
-		);
-		const note = await pdfNoteService.getLinkedNoteFile();
+	async save(pdfPath: TFile): Promise<void> {
+		const link = await this.linkRepo.findByPdf(pdfPath.path);
 
-		if (!note) {
-			throw new Error(`No linked note found for PDF: ${pdf.path}`);
+		if (!link) {
+			throw new Error(`No linked note found for PDF: ${pdfPath}`);
 		}
 
 		const content = this.generateMarkdownContent(this.notes);
-		const file = (await this.app.vault.getAbstractFileByPath(
-			note.path
-		)) as TFile;
+		const file = this.app.vault.getFileByPath(link.notePath) as TFile;
 
 		if (file) {
 			await this.app.vault.modify(file, content);
+		} else {
+			throw new Error(`Note file not found: ${link.notePath}`);
 		}
 	}
 
@@ -75,7 +77,7 @@ export class NoteRepository implements INoteRepository {
 	}
 
 	async delete(noteId: string): Promise<void> {
-		// Implémentation de suppression si nécessaire
+		// Implementation for deletion if needed
 	}
 
 	parseMarkdownContent(content: string): Map<number, string> {
@@ -94,7 +96,13 @@ export class NoteRepository implements INoteRepository {
 
 	generateMarkdownContent(notes: string[]): string {
 		return notes
-			.map((content, pageNumber) => `## Page ${pageNumber}\n${content}\n`)
+			.map((content, pageNumber) => {
+				if (content) {
+					return `## Page ${pageNumber}\n${content}\n`;
+				}
+				return '';
+			})
+			.filter(content => content !== '')
 			.join("\n");
 	}
 }

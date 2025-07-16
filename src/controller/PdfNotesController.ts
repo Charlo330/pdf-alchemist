@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { App, Notice, TFile } from "obsidian";
-import { TYPES } from "src/container";
+import { TYPES } from "src/type/types";
 import { PdfNotesService } from "src/Service/PdfNotesService";
 import { StateManager } from "src/StateManager";
 
@@ -18,9 +18,9 @@ export class PdfNotesController {
       return;
     }
 
+	await this.pdfNotesService.onPdfChanged();
     this.stateManager.setCurrentPdf(file);
     // Notify the service that PDF has changed
-    await this.pdfNotesService.onPdfChanged();
   }
 
   async onPageChanged(page: number): Promise<void> {
@@ -31,7 +31,7 @@ export class PdfNotesController {
     const state = this.stateManager.getState();
     if (!state.currentPdf) return;
 
-    await this.pdfNotesService.saveNote();
+    await this.pdfNotesService.saveNote(content);
   }
 
   async getNoteForCurrentPage(): Promise<string> {

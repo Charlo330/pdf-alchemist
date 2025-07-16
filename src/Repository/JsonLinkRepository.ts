@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { App } from "obsidian";
-import { TYPES } from "src/container";
+import { TYPES } from "src/type/types";
 import { ILinkRepository } from "src/type/ILinkRepository";
 import { PdfNoteLink } from "src/type/PdfNoteLink";
 
@@ -22,13 +22,9 @@ export class JsonLinkRepository implements ILinkRepository {
 
 	private async loadIndex(): Promise<void> {
 		try {
-			const file = this.app.vault.getFileByPath(this.indexPath);
 
-			if (!file) {
-				throw new Error(`Index file ${this.indexPath} not found.`);
-			}
-
-			const content = await this.app.vault.read(file);
+			const content = await this.app.vault.adapter.read(this.indexPath);
+			console.log("Loaded index content:", content);
 			this.index = JSON.parse(content);
 		} catch (error) {
 			console.warn("Failed to load index, initializing empty.");

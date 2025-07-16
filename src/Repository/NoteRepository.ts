@@ -1,19 +1,28 @@
 import { inject, injectable } from "inversify";
 import { App, TFile } from "obsidian";
-import { TYPES } from "src/container";
+import { TYPES } from "src/type/types";
 import { INoteRepository } from "src/type/INoteRepository";
 import type { ILinkRepository } from "src/type/ILinkRepository";
+import { StateManager } from "src/StateManager";
 
 @injectable()
 export class NoteRepository implements INoteRepository {
 	private notes: string[] = [];
+	private unsubscribe: (() => void) | null = null;
 
 	constructor(
 		@inject(TYPES.App) private app: App,
-		@inject(TYPES.LinkRepository) private linkRepo: ILinkRepository
+		@inject(TYPES.LinkRepository) private linkRepo: ILinkRepository,
+		@inject(TYPES.StateManager) private stateManager: StateManager
 	) {}
 
-	async initialize(pdfPath: string) {
+	async initialize() {
+
+		const pdfPath = this.stateManager.getCurrentPdf()?.path;
+
+		if (!pdfPath) {
+			throw new Error("No PDF path found.");
+		}
 		const link = await this.linkRepo.findByPdf(pdfPath);
 		
 		if (!link) {
@@ -34,11 +43,14 @@ export class NoteRepository implements INoteRepository {
 
 		const loadedNotes = this.parseMarkdownNotes(content);
 
-		// Merge new notes with existing ones in memory
-		if (!this.notes) {
-			this.notes = [];
+		// Initialize notes array properly
+		this.notes = [];
+		// Copy loaded notes to the array
+		for (let i = 0; i < loadedNotes.length; i++) {
+			if (loadedNotes[i]) {
+				this.notes[i] = loadedNotes[i];
+			}
 		}
-		this.notes = Object.assign(this.notes, loadedNotes);
 	}
 
 	parseMarkdownNotes(content: string): string[] {
@@ -55,18 +67,23 @@ export class NoteRepository implements INoteRepository {
 		return notes;
 	}
 
-	async save(pdfPath: TFile): Promise<void> {
-		const link = await this.linkRepo.findByPdf(pdfPath.path);
+	async save(pdfPath: string, page: number, content: string): Promise<void> {
+		const link = await this.linkRepo.findByPdf(pdfPath);
+
+		this.notes[page] = content;
 
 		if (!link) {
 			throw new Error(`No linked note found for PDF: ${pdfPath}`);
 		}
 
-		const content = this.generateMarkdownContent(this.notes);
+		const markdownContent = this.generateMarkdownContent(this.notes);
+
 		const file = this.app.vault.getFileByPath(link.notePath) as TFile;
 
+		console.log("file",file)
+
 		if (file) {
-			await this.app.vault.modify(file, content);
+			await this.app.vault.modify(file, markdownContent);
 		} else {
 			throw new Error(`Note file not found: ${link.notePath}`);
 		}
@@ -104,5 +121,12 @@ export class NoteRepository implements INoteRepository {
 			})
 			.filter(content => content !== '')
 			.join("\n");
+	}
+
+	onClose() {
+		if (this.unsubscribe) {
+			this.unsubscribe();
+			this.unsubscribe = null;
+		}
 	}
 }

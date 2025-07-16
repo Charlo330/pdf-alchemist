@@ -1,7 +1,5 @@
-import { TFile } from "obsidian";
-
 export interface INoteRepository {
-  save(note: TFile): Promise<void>;
+  save(pdfPath: string, page: number, content: string): Promise<void>;
   findByPage(page: number): Promise<string | null>;
   delete(noteId: string): Promise<void>;
   parseMarkdownContent(content: string): Map<number, string>;

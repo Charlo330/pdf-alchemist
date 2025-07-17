@@ -1,125 +1,51 @@
-.pdf-subtitle {
-	display: none;
-}
-.pdf-notes-container {
-	display: flex;
-	height: 100%;
-}
-
-.pdf-container {
-	flex: 1.5;
-	position: relative;
-	background: #f0f0f0;
-	padding: 10px;
-}
-
-.notes-container {
-	flex: 1;
-	background: #fff9e3;
-	display: flex;
-	flex-direction: column;
-}
-
-.notes-textarea {
-	flex: 1;
-	width: 100%;
-	height: 100%;
-	font-size: 16px;
-	border: none;
-	outline: none;
-	margin: 10px;
-}
-
 .pdf-notes-sidebar {
 	display: flex;
 	flex-direction: column;
 	justify-content: space-around;
+	padding: 0%;
+	margin: 0%;
 }
 
 .pdf-editor {
-	max-height: 80%;
 	width: 100%;
 	padding: 0%;
+	margin-top:2%;
+	background-color: var(--background-modifier-border);
+	border-radius: 4px;
+	border: solid;
+	border-color: var(--background-modifier-border);
+}
+
+.pdf-editor > .cm-editor > .cm-scroller {
+	padding:2% !important;
 }
 
 .file-picker-input {
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
-	
-}
-
-.pdf-empty {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-.pdf-div {
-	display: flex;
-	gap: 10px;
-	align-items: center;
-}
-
-.pdf-page-note {
-	vertical-align: text-top;
-	padding: 0;
-	margin: 0;
-}
-
-.pdf-button-refresh {
-	background-color: var(--accent-h);
-}
-
-.pdf-history {
-	display: flex;
-	gap: 5px;
-	flex-wrap: wrap;
-	min-width: 0;
-	min-height: 0;
-}
-
-.timer {
-	position: absolute;
-	top: 8px;
-	left: 12px;
-	color: var(--text-accent);
-	padding: 4px 8px;
-	border-radius: 6px;
-}
-
-.pdf-test-parent {
-	position: relative;
-  	display: inline-block;
-	margin-top: 0.3rem;
-}
-
-.pdf-test-element {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: #333;
-  color: white;
-  padding: 6px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-.pdf-test-parent:hover .pdf-test-element {
-	display: block;
-}
-
-.pdf-history-separator {
-	font-weight: bold;
-	color: var(--text-accent);
 }
 
 .nav-button {
 	cursor: pointer;
-	color: var(--accent-h)
+	color: var(--accent-h);
+	scale: 0.8;
 }
 
-.pdf-button-refresh:hover {
-	cursor: pointer;
+.pdf-page-title {
+	margin: 0;
+}
+
+.pdf-nav {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.2rem;
+	border-radius: 4px;
+	height: fit-content;
+}
+
+.pdf-button-container {
+	display: flex;
+	color: var(--text-accent);
 }

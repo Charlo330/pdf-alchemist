@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { ItemView, setIcon, WorkspaceLeaf } from "obsidian";
 import {
 	createEmbeddableMarkdownEditor,
 	EmbeddableMarkdownEditor,
@@ -17,6 +17,7 @@ export class PdfNoteView extends ItemView {
 	private titleElement: HTMLElement;
 	private pageElement: HTMLElement;
 	private emptyElement: HTMLElement;
+	private buttonDiv: HTMLElement;
 	private unsubscribe: (() => void) | null = null;
 
 	constructor(
@@ -50,12 +51,28 @@ export class PdfNoteView extends ItemView {
 			cls: "pdf-title",
 		});
 
-		this.pageElement = container.createEl("h4", {
+		const navDiv = container.createDiv("pdf-nav");
+
+		this.buttonDiv = navDiv.createDiv("pdf-button-container");
+
+		const backButton = this.buttonDiv.createEl("button", {
+			text: "Back",
+			cls: "nav-button",
+		});
+
+		const homeButton = this.buttonDiv.createEl("button", {
+			text: "Home",
+			cls: "nav-button",
+		});
+
+		setIcon(backButton, "chevron-left");
+
+		setIcon(homeButton, "home");
+
+		this.pageElement = navDiv.createEl("h5", {
 			text: "Page 1",
 			cls: "pdf-page-title",
 		});
-
-		container.createEl("hr");
 
 		const initialContent = await this.pdfNoteController.getNoteForCurrentPage();
 

@@ -82,15 +82,13 @@ export class PdfNoteView extends ItemView {
 			cls: "pdf-page-title",
 		});
 
-		const initialContent = await this.pdfNoteController.getNoteForCurrentPage();
-
 		this.emptyElement = container.createEl("p", {
 			text: "No PDF opened or no notes available.",
 			cls: "pdf-note-instructions",
 		});
 
 		this.editor = createEmbeddableMarkdownEditor(this.app, container, {
-			value: initialContent,
+			value: "",
 			placeholder: "Type your notes here...",
 			onChange: () => {
 				if (this.stateManager.getState().isInSubNote) {
@@ -129,7 +127,7 @@ export class PdfNoteView extends ItemView {
 			return;
 		}
 
-		if (state.currentPdf) {
+		if (state.currentPdf !== null && state.currentPdf !== undefined) {
 			this.titleElement.setText(`📝 Notes: ${state.currentPdf.basename}`);
 			this.pageElement.setText(`Page ${state.currentPage}`);
 

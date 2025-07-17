@@ -6,7 +6,6 @@ import { PluginSettings } from "./type/PluginSettings";
 import { PDF_NOTE_VIEW } from "./view/PdfNoteView/PdfNoteView";
 import { PdfNotesSettingTab } from "./settings/PdfNotesSettingTab";
 import { FilePickerModal } from "./view/FilePickerModal";
-import { PdfNotesService } from "./Service/PdfNotesService";
 import { TYPES } from "./type/types";
 import { NoteRepository } from "./Repository/NoteRepository";
 import { FileLinkedModal } from "./view/FileLinkedModal";
@@ -26,23 +25,24 @@ export default class PDFNotesPlugin extends Plugin {
 	};
 
 	private pdfNoteController: PdfNotesController;
-	private pdfNotesService: PdfNotesService;
 	private unsubscribe: (() => void) | null = null;
-	private currentPdfEventListener: EventRef | null = null;
+	private currentPdfEventListeners: Array<{
+		viewer: PdfViewer;
+		callback: (event: { pageNumber: number }) => void;
+	}> = [];
 
 	async onload() {
 		// Configuration du conteneur DI
 		await this.loadSettings();
 		configureContainer(this.app);
 
-		// Récupération des services
-		this.pdfNotesService = container.get<PdfNotesService>(
-			TYPES.PdfNotesService
+		this.pdfNoteController = container.get<PdfNotesController>(
+			TYPES.PdfNotesController
 		);
 
-		this.pdfNoteController = container.get<PdfNotesController>(TYPES.PdfNotesController);
-
-		const pdfNoteViewFactory = container.get<PdfNoteViewFactory>(TYPES.PdfNoteViewFactory);
+		const pdfNoteViewFactory = container.get<PdfNoteViewFactory>(
+			TYPES.PdfNoteViewFactory
+		);
 
 		// Enregistrement de la vue
 		this.registerView(PDF_NOTE_VIEW, (leaf) => {
@@ -71,14 +71,6 @@ export default class PDFNotesPlugin extends Plugin {
 			this.openPdfNotes();
 		});
 
-		// Événements
-		this.registerEvent(
-			this.app.workspace.on("file-open", (file) => {
-				this.pdfNoteController.onPdfFileChanged(file);
-				this.setupPdfEventListeners();
-			})
-		);
-
 		this.registerEvent(
 			this.app.workspace.on("file-menu", (menu, file) => {
 				if (file instanceof TFile) {
@@ -98,7 +90,10 @@ export default class PDFNotesPlugin extends Plugin {
 											file.path
 										);
 								}
-								new FileLinkedModal(this.app, linkedPath).open();
+								new FileLinkedModal(
+									this.app,
+									linkedPath
+								).open();
 							});
 					});
 				}
@@ -137,39 +132,74 @@ export default class PDFNotesPlugin extends Plugin {
 
 		noteRepo.initialize();
 
+		this.registerEvent(
+			this.app.workspace.on("layout-change", () => {
+				console.log("Layout changed, setting up PDF event listeners.");
+				this.setupChangePageEventListeners();
+			})
+		);
+
+		// Événements
+		this.registerEvent(
+			this.app.workspace.on("file-open", (file) => {
+				this.pdfNoteController.onPdfFileChanged(file);
+				this.setupChangePageEventListeners();
+				console.log("📄 Fichier ouvert:", file?.path);
+			})
+		);
+
 		// Écouter les changements de page PDF
-		this.setupPdfEventListeners();
+		this.setupChangePageEventListeners();
 	}
 
-	private setupPdfEventListeners() {
-		// Rechercher le viewer PDF et écouter les changements de page
+	private setupChangePageEventListeners() {
+		this.cleanupPdfEventListeners();
 
-		if (this.currentPdfEventListener) {
-			this.currentPdfEventListener = null;
+		const pdfViewers = this.findPdfViewer();
+
+		if (!pdfViewers || pdfViewers.length === 0) {
+			console.warn("Aucun viewer PDF trouvé");
+			return;
 		}
 
-		const pdfViewer = this.findPdfViewer();
-
-		if (pdfViewer) {
-			if (this.currentPdfEventListener) {
-				pdfViewer.eventBus.off(
-					"pagechanging",
-					this.currentPdfEventListener
-				);
-			}
-
-			this.currentPdfEventListener = pdfViewer.eventBus.on(
-				"pagechanging",
-				async (event: { pageNumber: number }) => {
-					console.log("testing page changing", event.pageNumber);
+		for (const viewer of pdfViewers) {
+			if (viewer?.eventBus) {
+				// Créer une fonction callback qu'on peut référencer
+				const callback = async (event: { pageNumber: number }) => {
+					console.log("📄 Page changing:", event.pageNumber);
 					this.pdfNoteController.onPageChanged(event.pageNumber);
-				}
-			);
+				};
+
+				// Enregistrer l'événement
+				viewer.eventBus.on("pagechanging", callback);
+
+				// Stocker la référence pour pouvoir la supprimer
+				this.currentPdfEventListeners.push({
+					viewer: viewer,
+					callback: callback,
+				});
+			}
 		}
 	}
 
-	findPdfViewer(): PdfViewer | null {
+	private cleanupPdfEventListeners() {
+		for (const { viewer, callback } of this.currentPdfEventListeners) {
+			if (viewer?.eventBus && callback) {
+				try {
+					viewer.eventBus.off("pagechanging", callback);
+				} catch (error) {
+					console.warn("❌ Erreur lors de la suppression:", error);
+				}
+			}
+		}
+
+		this.currentPdfEventListeners = [];
+	}
+
+	findPdfViewer(): PdfViewer[] | null {
 		const leaves = this.app.workspace.getLeavesOfType("pdf");
+
+		const pdfViewers: PdfViewer[] = [];
 
 		for (const leaf of leaves) {
 			const view = leaf.view as any;
@@ -181,11 +211,15 @@ export default class PDFNotesPlugin extends Plugin {
 
 			if (viewer?.eventBus) {
 				console.log("✅ pdfViewer trouvé dans leaf", leaf);
-				return viewer;
+				pdfViewers.push(viewer);
 			}
 		}
 
-		console.warn("❌ Aucun pdfViewer trouvé dans les feuilles markdown.");
+		if (pdfViewers.length > 0) {
+			return pdfViewers;
+		}
+
+		console.warn("Aucun pdfViewer trouvé dans les feuilles markdown.");
 		return null;
 	}
 

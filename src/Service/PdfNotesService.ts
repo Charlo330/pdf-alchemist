@@ -61,9 +61,8 @@ export class PdfNotesService {
 		if (!subNotePath) {
 			throw new Error("No sub-note path found in navigation stack.");
 		}
-		console.log("Saving sub-note content for path:", subNotePath, "Content:", content
-		);
-		await this.noteRepo.saveToFilePath(subNotePath, content); // Page is not
+
+		await this.noteRepo.saveToFilePath(subNotePath, content);
 	}
 
 	async getLinkedNoteFile(): Promise<TFile | null> {
@@ -104,16 +103,18 @@ export class PdfNotesService {
 	}
 
 	async createSubNoteFileIfNotExists(file: string): Promise<string> {
+
 		let subNotePath = this.app.metadataCache.getFirstLinkpathDest(file, "")?.path;
 
 		if (!subNotePath) {
-			const pdfPath = this.stateManager.getCurrentPdf()?.path;
+			const linkedNote = await this.getLinkedNoteFile();
 
-			if (!pdfPath) {
-				throw new Error("No current PDF file set in StateManager.");
+			if (!linkedNote) {
+				throw new Error("No linked note found.");
 			}
 
-			subNotePath = pdfPath.replace(/\.pdf$/, ".md");
+			const subNotePathBaseName = linkedNote.basename;
+			subNotePath = linkedNote.path.replace(`${subNotePathBaseName}`, file);
 			await this.app.vault.create(subNotePath, "");
 		}
 		return subNotePath;

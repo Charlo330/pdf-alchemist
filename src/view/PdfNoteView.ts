@@ -6,9 +6,12 @@ import {
 import { AppState } from "src/type/AppState";
 import { StateManager } from "src/StateManager";
 import { PdfNotesController } from "src/controller/PdfNotesController";
+import { SubNotesController } from "src/controller/SubNotesController";
+import { injectable } from "inversify";
 
 export const PDF_NOTE_VIEW = "pdf-note-view";
 
+@injectable()
 export class PdfNoteView extends ItemView {
 	private editor: EmbeddableMarkdownEditor;
 	private titleElement: HTMLElement;
@@ -18,7 +21,8 @@ export class PdfNoteView extends ItemView {
 
 	constructor(
 		leaf: WorkspaceLeaf,
-		private controller: PdfNotesController,
+		private pdfNoteController: PdfNotesController,
+		private subNoteController: SubNotesController,
 		private stateManager: StateManager
 	) {
 		super(leaf);
@@ -53,7 +57,7 @@ export class PdfNoteView extends ItemView {
 
 		container.createEl("hr");
 
-		const initialContent = await this.controller.getNoteForCurrentPage();
+		const initialContent = await this.pdfNoteController.getNoteForCurrentPage();
 
 		this.emptyElement = container.createEl("p", {
 			text: "No PDF opened or no notes available.",
@@ -64,7 +68,7 @@ export class PdfNoteView extends ItemView {
 			value: initialContent,
 			placeholder: "Type your notes here...",
 			onChange: () => {
-				this.controller.saveNote(this.editor.value);
+				this.pdfNoteController.saveNote(this.editor.value);
 			},
 			cls: "pdf-editor",
 		});
@@ -76,11 +80,22 @@ export class PdfNoteView extends ItemView {
 	}
 
 	async onStateChange(state: AppState): Promise<void> {
+		if (state.isInSubNote) {
+			this.titleElement.setText(`📝 Sub-Notes: ${state.currentPdf?.basename}`);
+			this.pageElement.setText(`Page ${state.currentPage}`);
+			this.emptyElement.style.display = "none";
+
+			const subNoteContent = await this.subNoteController.getSubNoteContent();
+			this.editor.show();
+			this.editor.set(subNoteContent);
+			return;
+		}
+
 		if (state.currentPdf) {
 			this.titleElement.setText(`📝 Notes: ${state.currentPdf.basename}`);
 			this.pageElement.setText(`Page ${state.currentPage}`);
 
-			const content = await this.controller.getNoteForCurrentPage();
+			const content = await this.pdfNoteController.getNoteForCurrentPage();
 			this.editor.show();
 			this.editor.set(content);
 			this.emptyElement.style.display = "none";

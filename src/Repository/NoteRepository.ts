@@ -17,14 +17,13 @@ export class NoteRepository implements INoteRepository {
 	) {}
 
 	async initialize() {
-
 		const pdfPath = this.stateManager.getCurrentPdf()?.path;
 
 		if (!pdfPath) {
 			throw new Error("No PDF path found.");
 		}
 		const link = await this.linkRepo.findByPdf(pdfPath);
-		
+
 		if (!link) {
 			throw new Error("No linked note file found.");
 		}
@@ -80,7 +79,7 @@ export class NoteRepository implements INoteRepository {
 
 		const file = this.app.vault.getFileByPath(link.notePath) as TFile;
 
-		console.log("file",file)
+		console.log("file", file);
 
 		if (file) {
 			await this.app.vault.modify(file, markdownContent);
@@ -91,6 +90,16 @@ export class NoteRepository implements INoteRepository {
 
 	async findByPage(page: number): Promise<string | null> {
 		return this.notes[page] || null;
+	}
+
+	async findSubNoteContent(subNotePath: string): Promise<string | Promise<string>> {
+		const content = await this.app.vault.getAbstractFileByPath(subNotePath);
+
+		if (!content || !(content instanceof TFile)) {
+			throw new Error(`Sub-note file not found: ${subNotePath}`);
+		}
+
+		return content.path;
 	}
 
 	async delete(noteId: string): Promise<void> {
@@ -117,9 +126,9 @@ export class NoteRepository implements INoteRepository {
 				if (content) {
 					return `## Page ${pageNumber}\n${content}\n`;
 				}
-				return '';
+				return "";
 			})
-			.filter(content => content !== '')
+			.filter((content) => content !== "")
 			.join("\n");
 	}
 

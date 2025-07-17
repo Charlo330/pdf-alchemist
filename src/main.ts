@@ -1,10 +1,9 @@
-import { configureContainer, container } from "./container";
+import { configureContainer, container, PdfNoteViewFactory } from "./container";
 import { PdfNotesController } from "./controller/PdfNotesController";
-import { StateManager } from "./StateManager";
 
 import { EventRef, Plugin, TFile } from "obsidian";
 import { PluginSettings } from "./type/PluginSettings";
-import { PDF_NOTE_VIEW, PdfNoteView } from "./view/PdfNoteView";
+import { PDF_NOTE_VIEW } from "./view/PdfNoteView";
 import { PdfNotesSettingTab } from "./settings/PdfNotesSettingTab";
 import { FilePickerModal } from "./view/FilePickerModal";
 import { PdfNotesService } from "./Service/PdfNotesService";
@@ -26,8 +25,7 @@ export default class PDFNotesPlugin extends Plugin {
 		autoCreateNotes: true,
 	};
 
-	private controller: PdfNotesController;
-	private stateManager: StateManager;
+	private pdfNoteController: PdfNotesController;
 	private pdfNotesService: PdfNotesService;
 	private unsubscribe: (() => void) | null = null;
 	private currentPdfEventListener: EventRef | null = null;
@@ -38,16 +36,17 @@ export default class PDFNotesPlugin extends Plugin {
 		configureContainer(this.app);
 
 		// Récupération des services
-		this.stateManager = container.get<StateManager>(TYPES.StateManager);
 		this.pdfNotesService = container.get<PdfNotesService>(
 			TYPES.PdfNotesService
 		);
 
-		this.controller = container.get<PdfNotesController>(TYPES.Controller);
+		this.pdfNoteController = container.get<PdfNotesController>(TYPES.PdfNotesController);
+
+		const pdfNoteViewFactory = container.get<PdfNoteViewFactory>(TYPES.PdfNoteViewFactory);
 
 		// Enregistrement de la vue
 		this.registerView(PDF_NOTE_VIEW, (leaf) => {
-			return new PdfNoteView(leaf, this.controller, this.stateManager);
+			return pdfNoteViewFactory(leaf);
 		});
 
 		// Onglet de paramètres
@@ -64,7 +63,7 @@ export default class PDFNotesPlugin extends Plugin {
 			id: "link-pdf-to-note",
 			name: "Link PDF to Note",
 			callback: () =>
-				new FilePickerModal(this.app, this.controller).open(),
+				new FilePickerModal(this.app, this.pdfNoteController).open(),
 		});
 
 		// Bouton ribbon
@@ -75,7 +74,7 @@ export default class PDFNotesPlugin extends Plugin {
 		// Événements
 		this.registerEvent(
 			this.app.workspace.on("file-open", (file) => {
-				this.controller.onPdfFileChanged(file);
+				this.pdfNoteController.onPdfFileChanged(file);
 				this.setupPdfEventListeners();
 			})
 		);
@@ -90,12 +89,12 @@ export default class PDFNotesPlugin extends Plugin {
 								let linkedPath = null;
 								if (file.extension === "pdf") {
 									linkedPath =
-										await this.controller.getLinkedNotePath(
+										await this.pdfNoteController.getLinkedNotePath(
 											file.path
 										);
 								} else if (file.extension === "md") {
 									linkedPath =
-										await this.controller.getLinkedPdfPath(
+										await this.pdfNoteController.getLinkedPdfPath(
 											file.path
 										);
 								}
@@ -123,7 +122,7 @@ export default class PDFNotesPlugin extends Plugin {
 		this.registerEvent(
 			this.app.vault.on("delete", (file) => {
 				if (file instanceof TFile) {
-					this.controller.deleteLink(file);
+					this.pdfNoteController.deleteLink(file);
 				}
 			})
 		);
@@ -136,9 +135,9 @@ export default class PDFNotesPlugin extends Plugin {
 
 	async initializeAfterLayout() {
 		// Ouvrir automatiquement la vue si un PDF est ouvert
-		const currentFile = this.controller.getCurrentPdfFile();
+		const currentFile = this.pdfNoteController.getCurrentPdfFile();
 		if (currentFile) {
-			await this.controller.onPdfFileChanged(currentFile);
+			await this.pdfNoteController.onPdfFileChanged(currentFile);
 			this.openPdfNotes();
 		}
 
@@ -171,7 +170,7 @@ export default class PDFNotesPlugin extends Plugin {
 				"pagechanging",
 				async (event: { pageNumber: number }) => {
 					console.log("testing page changing", event.pageNumber);
-					this.controller.onPageChanged(event.pageNumber);
+					this.pdfNoteController.onPageChanged(event.pageNumber);
 				}
 			);
 		}

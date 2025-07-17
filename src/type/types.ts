@@ -5,5 +5,7 @@ export const TYPES = {
 	LinkRepository: Symbol.for("LinkRepository"),
 	FileSystem: Symbol.for("FileSystem"),
 	StateManager: Symbol.for("StateManager"),
-	Controller: Symbol.for("Controller"),
+	PdfNotesController: Symbol.for("PdfNotesController"),
+	SubNotesController: Symbol.for("SubNotesController"),
+	PdfNoteViewFactory: Symbol.for("PdfNoteViewFactory"),
 };

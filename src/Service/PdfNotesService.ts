@@ -34,6 +34,16 @@ export class PdfNotesService {
 		return await this.noteRepo.findByPage(page);
 	}
 
+	async getSubNoteContent() : Promise<string> {
+		const state = this.stateManager.getState();
+		if (!state.isInSubNote) return "";
+
+		const subNotePath = this.stateManager.peekNavigationStack();
+		if (!subNotePath) return "";
+
+		return await this.noteRepo.findSubNoteContent(subNotePath);
+	}
+
 	async saveNote(content: string): Promise<void> {
 		await this.ensureInitialized();
 		const pdfPath = this.stateManager.getCurrentPdf()?.path;
@@ -80,6 +90,22 @@ export class PdfNotesService {
 
 		await this.linkPdfToNote(file?.path || "", notePath);
 		return notePath;
+	}
+
+	async createSubNoteFileIfNotExists(file: string): Promise<string> {
+		let subNotePath = this.app.metadataCache.getFirstLinkpathDest(file, "")?.path;
+
+		if (!subNotePath) {
+			const pdfPath = this.stateManager.getCurrentPdf()?.path;
+
+			if (!pdfPath) {
+				throw new Error("No current PDF file set in StateManager.");
+			}
+
+			subNotePath = pdfPath.replace(/\.pdf$/, ".md");
+			await this.app.vault.create(subNotePath, "");
+		}
+		return subNotePath;
 	}
 
 	async updatePdfPath(oldPath: string, newPath: string): Promise<void> {

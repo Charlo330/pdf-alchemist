@@ -54,6 +54,10 @@ export class StateManager {
     return result;
   }
 
+  peekNavigationStack(): string | undefined {
+	return this.state.navigationStack[this.state.navigationStack.length - 1];
+  }
+
   setInSubNote(inSubNote: boolean): void {
     if (this.state.isInSubNote !== inSubNote) {
       this.state.isInSubNote = inSubNote;

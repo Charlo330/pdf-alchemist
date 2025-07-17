@@ -10,6 +10,7 @@ import { App, WorkspaceLeaf } from "obsidian";
 import { TYPES } from "./type/types";
 import { SubNotesController } from "./controller/SubNotesController";
 import { PdfNoteView } from "./view/PdfNoteView/PdfNoteView";
+import { FileLinkService } from "./Service/FileLinkService";
 
 export const container = new Container();
 
@@ -24,7 +25,8 @@ export function configureContainer(app: App): void {
     container.bind<PdfNotesService>(TYPES.PdfNotesService).to(PdfNotesService).inSingletonScope();
     container.bind<PdfNotesController>(TYPES.PdfNotesController).to(PdfNotesController).inSingletonScope();
     container.bind<SubNotesController>(TYPES.SubNotesController).to(SubNotesController).inSingletonScope();
-    
+	container.bind<FileLinkService>(TYPES.FileLinkService).to(FileLinkService).inSingletonScope();
+
     // Factory pour PdfNoteView
     container.bind<PdfNoteViewFactory>(TYPES.PdfNoteViewFactory).toFactory(() => {
         return (leaf: WorkspaceLeaf) => {

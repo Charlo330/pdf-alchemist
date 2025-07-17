@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
-import { App, Notice } from "obsidian";
+import { App, normalizePath, Notice } from "obsidian";
+import { FileLinkService } from "src/Service/FileLinkService";
 import { PdfNotesService } from "src/Service/PdfNotesService";
 import { StateManager } from "src/StateManager";
 import { TYPES } from "src/type/types";
@@ -9,6 +10,7 @@ export class SubNotesController {
 	constructor(
 		@inject(TYPES.PdfNotesService) private pdfNotesService: PdfNotesService,
 		@inject(TYPES.StateManager) private stateManager: StateManager,
+		@inject(TYPES.FileLinkService) private fileLinkService: FileLinkService,
 		@inject(TYPES.App) private app: App
 	) {}
 
@@ -27,23 +29,37 @@ export class SubNotesController {
 	}
 
 	async openSubNote(fileName: string): Promise<void> {
-		const subNotePath =
-			await this.pdfNotesService.createSubNoteFileIfNotExists(fileName);
+		let subNotePath = await this.app.metadataCache.getFirstLinkpathDest(
+			fileName,
+			""
+		)?.path;
+		console.log("subNotePath", subNotePath);
+
+		if (!subNotePath) {
+
+			const linkedNote = await this.fileLinkService.getLinkedNoteFile();
+
+			const folderPath = linkedNote?.path.substring(0, linkedNote.path.lastIndexOf("/"));
+
+			const newFilePath = normalizePath(`${folderPath}/${fileName}.md`);
+
+			subNotePath = await this.pdfNotesService.createSubNoteFile(
+				newFilePath
+			);
+		}
 
 		if (subNotePath) {
-			this.stateManager.setInSubNote(true);
+			this.stateManager.pushToNavigationStack(subNotePath);
 		} else {
 			new Notice(`Failed to create sub-note for: ${fileName}`);
 		}
-
-		this.stateManager.pushToNavigationStack(subNotePath);
 	}
 
 	async getSubNoteContent(): Promise<string> {
 		return await this.pdfNotesService.getSubNoteContent();
 	}
 
-	getSubNoteFileName() : string | null {
+	getSubNoteFileName(): string | null {
 		const subNotePath = this.stateManager.peekNavigationStack();
 		if (!subNotePath) {
 			return null;

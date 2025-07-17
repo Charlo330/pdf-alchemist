@@ -44,6 +44,7 @@ export class StateManager {
   }
 
   pushToNavigationStack(path: string): void {
+	this.state.isInSubNote = true;
     this.state.navigationStack.push(path);
     this.notifyListeners();
   }

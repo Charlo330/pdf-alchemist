@@ -1,6 +1,4 @@
 import { injectable, inject } from "inversify";
-import { PdfNoteLink } from "src/type/PdfNoteLink";
-import type { ILinkRepository } from "src/type/ILinkRepository";
 import { App, TFile } from "obsidian";
 import { NoteRepository } from "src/Repository/NoteRepository";
 import { TYPES } from "src/type/types";
@@ -12,7 +10,6 @@ export class PdfNotesService {
 
 	constructor(
 		@inject(TYPES.NoteRepository) private noteRepo: NoteRepository,
-		@inject(TYPES.LinkRepository) private linkRepo: ILinkRepository,
 		@inject(TYPES.StateManager) private stateManager: StateManager,
 		@inject(TYPES.App) private app: App
 	) {}
@@ -22,11 +19,6 @@ export class PdfNotesService {
 			await this.noteRepo.initialize();
 			this.isInitialized = true;
 		}
-	}
-
-	async linkPdfToNote(pdfPath: string, notePath: string): Promise<void> {
-		const link: PdfNoteLink = { pdfPath, notePath };
-		await this.linkRepo.save(link);
 	}
 
 	async getNotesForPage(page: number): Promise<string | null> {
@@ -74,32 +66,7 @@ export class PdfNotesService {
 		this.stateManager.setInSubNote(false);
 	}
 
-	async getLinkedNoteFile(): Promise<TFile | null> {
-		const pdfPath = this.stateManager.getCurrentPdf()?.path;
-		console.log("pdfPath", pdfPath);
-		const link = await this.linkRepo.findByPdf(pdfPath ? pdfPath : "");
-
-		const filepath = this.app.vault.getFileByPath(link?.notePath || "");
-
-		return filepath || null;
-	}
-
-	async getLinkedNotePath(pdfPath: string): Promise<string | null> {
-		const link = await this.linkRepo.findByPdf(pdfPath);
-		return link?.notePath || null;
-	}
-
-	async getLinkedPdfPath(notePath: string): Promise<string | null> {
-		const link = await this.linkRepo.findByNote(notePath);
-		return link?.pdfPath || null;
-	}
-
 	async createNoteFileIfNotExists(file: TFile): Promise<string> {
-		const existingLink = await this.linkRepo.findByPdf(file?.path || "");
-		if (existingLink) {
-			return existingLink.notePath;
-		}
-
 		const notePath = file?.path.replace(/\.pdf$/, ".md") || "";	
 
 		if (!(await this.app.vault.adapter.exists(notePath))) {
@@ -107,49 +74,12 @@ export class PdfNotesService {
 			await this.app.vault.create(notePath, "");
 		}
 
-		await this.linkPdfToNote(file?.path || "", notePath);
 		return notePath;
 	}
 
-	async createSubNoteFileIfNotExists(file: string): Promise<string> {
-
-		let subNotePath = this.app.metadataCache.getFirstLinkpathDest(file, "")?.path;
-
-		if (!subNotePath) {
-			const linkedNote = await this.getLinkedNoteFile();
-
-			if (!linkedNote) {
-				throw new Error("No linked note found.");
-			}
-
-			const subNotePathBaseName = linkedNote.basename;
-			subNotePath = linkedNote.path.replace(`${subNotePathBaseName}`, file);
-			await this.app.vault.create(subNotePath, "");
-		}
-		return subNotePath;
-	}
-
-	async updatePdfPath(oldPath: string, newPath: string): Promise<void> {
-		await this.linkRepo.updatePdfPath(oldPath, newPath);
-		// Reset initialization flag to force re-initialization with new path
-		this.isInitialized = false;
-	}
-
-	async updateNotePath(oldPath: string, newPath: string): Promise<void> {
-		await this.linkRepo.updateNotePath(oldPath, newPath);
-		// Reset initialization flag to force re-initialization with new path
-		this.isInitialized = false;
-	}
-
-	async deletePdfLink(pdfPath: string): Promise<void> {
-		await this.linkRepo.delete(pdfPath);
-	}
-
-	async deleteNoteLink(notePath: string): Promise<void> {
-		const link = await this.linkRepo.findByNote(notePath);
-		if (link) {
-			await this.linkRepo.delete(link.pdfPath);
-		}
+	async createSubNoteFile(filePath: string): Promise<string> {
+		await this.app.vault.create(filePath, "");
+		return filePath;
 	}
 
 	// Call this when PDF changes to reset initialization

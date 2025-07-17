@@ -107,15 +107,7 @@ export default class PDFNotesPlugin extends Plugin {
 
 		this.registerEvent(
 			this.app.vault.on("rename", (file, oldPath) => {
-				console.log("test")
-				if (file instanceof TFile) {
-					if (file.extension === "pdf") {
-						this.pdfNotesService.updatePdfPath(oldPath, file.path);
-					} else if (file.extension === "md") {
-						console.log("Updating note path for", file.path);
-						this.pdfNotesService.updateNotePath(oldPath, file.path);
-					}
-				}
+				this.pdfNoteController.updateFilesPath(file, oldPath);
 			})
 		);
 

@@ -8,4 +8,5 @@ export const TYPES = {
 	PdfNotesController: Symbol.for("PdfNotesController"),
 	SubNotesController: Symbol.for("SubNotesController"),
 	PdfNoteViewFactory: Symbol.for("PdfNoteViewFactory"),
+	FileLinkService: Symbol.for("FileLinkService"),
 };

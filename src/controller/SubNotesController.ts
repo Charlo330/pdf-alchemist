@@ -50,4 +50,12 @@ export class SubNotesController {
 		}
 		return subNotePath.split("/").pop()?.split(".")[0] || null;
 	}
+
+	previousSubNote(): void {
+		this.pdfNotesService.previousSubNote();
+	}
+
+	mainNote(): void {
+		this.pdfNotesService.mainNote();
+	}
 }

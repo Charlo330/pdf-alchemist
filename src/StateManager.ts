@@ -49,9 +49,12 @@ export class StateManager {
   }
 
   popFromNavigationStack(): string | undefined {
-    const result = this.state.navigationStack.pop();
+    this.state.navigationStack.pop();
+	if (this.peekNavigationStack() == null || this.peekNavigationStack() === undefined) {
+		this.state.isInSubNote = false;
+	}
     this.notifyListeners();
-    return result;
+    return this.peekNavigationStack();
   }
 
   peekNavigationStack(): string | undefined {

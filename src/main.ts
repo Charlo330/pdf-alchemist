@@ -3,7 +3,7 @@ import { PdfNotesController } from "./controller/PdfNotesController";
 
 import { EventRef, Plugin, TFile } from "obsidian";
 import { PluginSettings } from "./type/PluginSettings";
-import { PDF_NOTE_VIEW } from "./view/PdfNoteView";
+import { PDF_NOTE_VIEW } from "./view/PdfNoteView/PdfNoteView";
 import { PdfNotesSettingTab } from "./settings/PdfNotesSettingTab";
 import { FilePickerModal } from "./view/FilePickerModal";
 import { PdfNotesService } from "./Service/PdfNotesService";

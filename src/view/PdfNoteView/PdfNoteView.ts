@@ -60,10 +60,18 @@ export class PdfNoteView extends ItemView {
 			cls: "nav-button",
 		});
 
+		backButton.onclick = () => {
+			this.subNoteController.previousSubNote();
+		};
+
 		const homeButton = this.buttonDiv.createEl("button", {
 			text: "Home",
 			cls: "nav-button",
 		});
+
+		homeButton.onclick = () => {
+			this.subNoteController.mainNote();
+		};
 
 		setIcon(backButton, "chevron-left");
 
@@ -105,6 +113,8 @@ export class PdfNoteView extends ItemView {
 		this.unsubscribe = this.stateManager.subscribe(
 			this.onStateChange.bind(this)
 		);
+
+		this.onStateChange(this.stateManager.getState());
 	}
 
 	async onStateChange(state: AppState): Promise<void> {
@@ -127,9 +137,11 @@ export class PdfNoteView extends ItemView {
 			this.editor.show();
 			this.editor.set(content);
 			this.emptyElement.style.display = "none";
+			this.buttonDiv.style.display = "flex";
 		} else {
 			this.titleElement.setText("📝 No PDF opened");
 			this.pageElement.setText("");
+			this.buttonDiv.style.display = "none";
 			this.editor.hide();
 			this.editor.set("");
 			this.emptyElement.style.display = "block";

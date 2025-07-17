@@ -9,7 +9,7 @@ import { JsonLinkRepository } from "./Repository/JsonLinkRepository";
 import { App, WorkspaceLeaf } from "obsidian";
 import { TYPES } from "./type/types";
 import { SubNotesController } from "./controller/SubNotesController";
-import { PdfNoteView } from "./view/PdfNoteView";
+import { PdfNoteView } from "./view/PdfNoteView/PdfNoteView";
 
 export const container = new Container();
 

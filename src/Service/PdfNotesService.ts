@@ -65,6 +65,15 @@ export class PdfNotesService {
 		await this.noteRepo.saveToFilePath(subNotePath, content);
 	}
 
+	previousSubNote(): void {
+		this.stateManager.popFromNavigationStack();
+	}
+
+	mainNote(): void {
+		this.stateManager.getState().navigationStack = [];
+		this.stateManager.setInSubNote(false);
+	}
+
 	async getLinkedNoteFile(): Promise<TFile | null> {
 		const pdfPath = this.stateManager.getCurrentPdf()?.path;
 		console.log("pdfPath", pdfPath);

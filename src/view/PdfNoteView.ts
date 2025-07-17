@@ -92,7 +92,7 @@ export class PdfNoteView extends ItemView {
 
 	async onStateChange(state: AppState): Promise<void> {
 		if (state.isInSubNote) {
-			this.titleElement.setText(`📝 Sub-Notes: ${state.currentPdf?.basename}`);
+			this.titleElement.setText(`📝 Sub-Notes: ${this.subNoteController.getSubNoteFileName()}`);
 			this.pageElement.setText(`Page ${state.currentPage}`);
 			this.emptyElement.style.display = "none";
 

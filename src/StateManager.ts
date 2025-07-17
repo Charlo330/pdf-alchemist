@@ -9,7 +9,7 @@ export class StateManager {
     currentPage: 1,
     links: new Map(),
     navigationStack: [],
-    isInSubNote: false
+    isInSubNote: false,
   };
 
   private listeners: Set<(state: AppState) => void> = new Set();

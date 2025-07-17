@@ -42,4 +42,12 @@ export class SubNotesController {
 	async getSubNoteContent(): Promise<string> {
 		return await this.pdfNotesService.getSubNoteContent();
 	}
+
+	getSubNoteFileName() : string | null {
+		const subNotePath = this.stateManager.peekNavigationStack();
+		if (!subNotePath) {
+			return null;
+		}
+		return subNotePath.split("/").pop()?.split(".")[0] || null;
+	}
 }

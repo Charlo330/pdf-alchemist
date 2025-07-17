@@ -68,7 +68,18 @@ export class PdfNoteView extends ItemView {
 			value: initialContent,
 			placeholder: "Type your notes here...",
 			onChange: () => {
-				this.pdfNoteController.saveNote(this.editor.value);
+				if (this.stateManager.getState().isInSubNote) {
+					this.subNoteController.saveSubNote(this.editor.value);
+				} else {
+					this.pdfNoteController.saveNote(this.editor.value);
+				}
+			},
+			onClickLink: async (event) => {
+				const target = event.target as HTMLAnchorElement;
+
+				if (target.textContent) {
+					await this.subNoteController.openSubNote(target.textContent);
+				}
 			},
 			cls: "pdf-editor",
 		});

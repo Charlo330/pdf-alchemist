@@ -88,18 +88,34 @@ export class NoteRepository implements INoteRepository {
 		}
 	}
 
+	saveToFilePath(filePath: string, content: string): void{
+		const file = this.app.vault.getAbstractFileByPath(filePath);
+
+		if (!file || !(file instanceof TFile)) {
+			throw new Error(`File not found: ${filePath}`);
+		}
+
+		this.app.vault.modify(file, content);
+	}
+
 	async findByPage(page: number): Promise<string | null> {
 		return this.notes[page] || null;
 	}
 
 	async findSubNoteContent(subNotePath: string): Promise<string | Promise<string>> {
-		const content = await this.app.vault.getAbstractFileByPath(subNotePath);
+		const subNote = await this.app.vault.getAbstractFileByPath(subNotePath);
 
-		if (!content || !(content instanceof TFile)) {
+		if (!subNote || !(subNote instanceof TFile)) {
 			throw new Error(`Sub-note file not found: ${subNotePath}`);
 		}
 
-		return content.path;
+		const content = await this.app.vault.read(subNote);
+
+		if (!content) {
+			return "";
+		}
+
+		return content;
 	}
 
 	async delete(noteId: string): Promise<void> {

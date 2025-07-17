@@ -31,6 +31,10 @@ export class PdfNotesController {
 
 	async saveNote(content: string): Promise<void> {
 		const state = this.stateManager.getState();
+
+		if (state.isInSubNote) {
+			return;
+		}
 		if (!state.currentPdf) return;
 
 		await this.pdfNotesService.saveNote(content);

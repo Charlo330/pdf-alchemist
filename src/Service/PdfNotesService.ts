@@ -39,6 +39,7 @@ export class PdfNotesService {
 		if (!state.isInSubNote) return "";
 
 		const subNotePath = this.stateManager.peekNavigationStack();
+		console.log("subNotePath", subNotePath);
 		if (!subNotePath) return "";
 
 		return await this.noteRepo.findSubNoteContent(subNotePath);
@@ -53,6 +54,16 @@ export class PdfNotesService {
 			console.log("Saving note for PDF:", pdfPath, "Page:", page, "Content:", content);
 			await this.noteRepo.save(pdfPath, page, content);
 		}
+	}
+
+	async saveSubNote(content: string): Promise<void> {
+		const subNotePath = this.stateManager.peekNavigationStack();
+		if (!subNotePath) {
+			throw new Error("No sub-note path found in navigation stack.");
+		}
+		console.log("Saving sub-note content for path:", subNotePath, "Content:", content
+		);
+		await this.noteRepo.saveToFilePath(subNotePath, content); // Page is not
 	}
 
 	async getLinkedNoteFile(): Promise<TFile | null> {

@@ -14,12 +14,16 @@ export class SubNotesController {
 
 	async saveSubNote(content: string): Promise<void> {
 		const state = this.stateManager.getState();
-		if (!state.currentPdf) return;
-		if (state.isInSubNote) {
-			await this.pdfNotesService.saveNote(content);
-		} else {
-			new Notice("You are not in a sub-note context.");
+		if (!state.isInSubNote) {
+			new Notice("You are not in a sub-note.");
+			return;
 		}
+		const subNotePath = this.stateManager.peekNavigationStack();
+		if (!subNotePath) {
+			new Notice("No sub-note path found.");
+			return;
+		}
+		await this.pdfNotesService.saveSubNote(content);
 	}
 
 	async openSubNote(fileName: string): Promise<void> {

@@ -3,51 +3,62 @@ import { FileTypeEnum, FolderSuggest } from "./FolderSuggest";
 import { PdfNotesController } from "src/controller/PdfNotesController";
 
 export class FilePickerModal extends Modal {
-  constructor(
-    app: App,
-    private controller: PdfNotesController
-  ) {
-    super(app);
-  }
+	constructor(
+		app: App,
+		private controller: PdfNotesController,
+		private pdfPath: string | null = null
+	) {
+		super(app);
+	}
 
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
+	onOpen() {
+		const { contentEl } = this;
+		contentEl.empty();
 
-    const h2 = contentEl.createEl("h2", {
-      text: "Link PDF to Markdown Note",
-    });
-    h2.style.textAlign = "center";
+		const h2 = contentEl.createEl("h2", {
+			text: "Link PDF to Markdown Note",
+		});
+		h2.style.textAlign = "center";
 
-    const inputContainer = contentEl.createDiv({
-      cls: "file-picker-input",
-    });
+		const inputContainer = contentEl.createDiv({
+			cls: "file-picker-input",
+		});
 
-    const pdfInput = inputContainer.createEl("input", {
-      type: "text",
-      placeholder: "PDF File Path",
-      cls: "file-picker-input-field",
-    });
+		const pdfInput = inputContainer.createEl("input", {
+			type: "text",
+			placeholder: "PDF File Path",
+			cls: "file-picker-input-field",
+			value: this.pdfPath || "",
+		});
 
-    const mdInput = inputContainer.createEl("input", {
-      type: "text",
-      placeholder: "Markdown File Path",
-      cls: "file-picker-input-field",
-    });
+		const mdInput = inputContainer.createEl("input", {
+			type: "text",
+			placeholder: "Markdown File Path",
+			cls: "file-picker-input-field",
+		});
 
-    new FolderSuggest(this.app, pdfInput, FileTypeEnum.PDF);
-    new FolderSuggest(this.app, mdInput, FileTypeEnum.MARKDOWN);
+		if (this.pdfPath) {
+			pdfInput.readOnly = true; // Make it read-only if a PDF path is provided
+			mdInput.focus();
+		} else {
+			new FolderSuggest(this.app, pdfInput, FileTypeEnum.PDF);
+		}
 
-    const btn = inputContainer.createEl("button", { text: "Link Files" });
-    btn.onclick = async () => {
-      if (pdfInput.value && mdInput.value) {
-        await this.controller.linkPdfToNote(pdfInput.value, mdInput.value);
-        this.close();
-      }
-    };
-  }
+		new FolderSuggest(this.app, mdInput, FileTypeEnum.MARKDOWN);
 
-  onClose() {
-    this.contentEl.empty();
-  }
+		const btn = inputContainer.createEl("button", { text: "Link Files" });
+		btn.onclick = async () => {
+			if (pdfInput.value && mdInput.value) {
+				await this.controller.linkPdfToNote(
+					pdfInput.value,
+					mdInput.value
+				);
+				this.close();
+			}
+		};
+	}
+
+	onClose() {
+		this.contentEl.empty();
+	}
 }

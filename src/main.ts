@@ -8,9 +8,9 @@ import { PDF_NOTE_VIEW, PdfNoteView } from "./view/PdfNoteView";
 import { PdfNotesSettingTab } from "./settings/PdfNotesSettingTab";
 import { FilePickerModal } from "./view/FilePickerModal";
 import { PdfNotesService } from "./Service/PdfNotesService";
-import { TimedModal } from "old/TimeModal";
 import { TYPES } from "./type/types";
 import { NoteRepository } from "./Repository/NoteRepository";
+import { FileLinkedModal } from "./view/FileLinkedModal";
 
 interface PdfViewer {
 	eventBus: {
@@ -99,7 +99,7 @@ export default class PDFNotesPlugin extends Plugin {
 											file.path
 										);
 								}
-								new TimedModal(this.app, linkedPath).open();
+								new FileLinkedModal(this.app, linkedPath).open();
 							});
 					});
 				}
@@ -108,12 +108,22 @@ export default class PDFNotesPlugin extends Plugin {
 
 		this.registerEvent(
 			this.app.vault.on("rename", (file, oldPath) => {
+				console.log("test")
 				if (file instanceof TFile) {
 					if (file.extension === "pdf") {
 						this.pdfNotesService.updatePdfPath(oldPath, file.path);
 					} else if (file.extension === "md") {
+						console.log("Updating note path for", file.path);
 						this.pdfNotesService.updateNotePath(oldPath, file.path);
 					}
+				}
+			})
+		);
+
+		this.registerEvent(
+			this.app.vault.on("delete", (file) => {
+				if (file instanceof TFile) {
+					this.controller.deleteLink(file);
 				}
 			})
 		);

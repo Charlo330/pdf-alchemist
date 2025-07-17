@@ -65,21 +65,20 @@ export class PdfNotesService {
 		return link?.pdfPath || null;
 	}
 
-	async createNoteFileIfNotExists(): Promise<string> {
-		const pdf = this.stateManager.getCurrentPdf();
-		const existingLink = await this.linkRepo.findByPdf(pdf?.path || "");
+	async createNoteFileIfNotExists(file: TFile): Promise<string> {
+		const existingLink = await this.linkRepo.findByPdf(file?.path || "");
 		if (existingLink) {
 			return existingLink.notePath;
 		}
 
-		const notePath = pdf?.path.replace(/\.pdf$/, ".md") || "";	
+		const notePath = file?.path.replace(/\.pdf$/, ".md") || "";	
 
 		if (!(await this.app.vault.adapter.exists(notePath))) {
 			// TODO: Use settings.noteTemplate when available
 			await this.app.vault.create(notePath, "");
 		}
 
-		await this.linkPdfToNote(pdf?.path || "", notePath);
+		await this.linkPdfToNote(file?.path || "", notePath);
 		return notePath;
 	}
 
@@ -93,6 +92,17 @@ export class PdfNotesService {
 		await this.linkRepo.updateNotePath(oldPath, newPath);
 		// Reset initialization flag to force re-initialization with new path
 		this.isInitialized = false;
+	}
+
+	async deletePdfLink(pdfPath: string): Promise<void> {
+		await this.linkRepo.delete(pdfPath);
+	}
+
+	async deleteNoteLink(notePath: string): Promise<void> {
+		const link = await this.linkRepo.findByNote(notePath);
+		if (link) {
+			await this.linkRepo.delete(link.pdfPath);
+		}
 	}
 
 	// Call this when PDF changes to reset initialization

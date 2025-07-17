@@ -13,6 +13,7 @@ export class PdfNoteView extends ItemView {
 	private editor: EmbeddableMarkdownEditor;
 	private titleElement: HTMLElement;
 	private pageElement: HTMLElement;
+	private emptyElement: HTMLElement;
 	private unsubscribe: (() => void) | null = null;
 
 	constructor(
@@ -54,6 +55,11 @@ export class PdfNoteView extends ItemView {
 
 		const initialContent = await this.controller.getNoteForCurrentPage();
 
+		this.emptyElement = container.createEl("p", {
+			text: "No PDF opened or no notes available.",
+			cls: "pdf-note-instructions",
+		});
+
 		this.editor = createEmbeddableMarkdownEditor(this.app, container, {
 			value: initialContent,
 			placeholder: "Type your notes here...",
@@ -75,12 +81,15 @@ export class PdfNoteView extends ItemView {
 			this.pageElement.setText(`Page ${state.currentPage}`);
 
 			const content = await this.controller.getNoteForCurrentPage();
-			console.log("Current page content:", content);
+			this.editor.show();
 			this.editor.set(content);
+			this.emptyElement.style.display = "none";
 		} else {
 			this.titleElement.setText("📝 No PDF opened");
 			this.pageElement.setText("");
+			this.editor.hide();
 			this.editor.set("");
+			this.emptyElement.style.display = "block";
 		}
 	}
 

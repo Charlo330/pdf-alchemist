@@ -1,6 +1,6 @@
 import { Modal, App } from 'obsidian';
 
-export class TimedModal extends Modal {
+export class FileLinkedModal extends Modal {
 	private link: string | null = null;
 
 	constructor(app: App, link:string | null) {

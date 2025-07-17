@@ -329,6 +329,18 @@ export class EmbeddableMarkdownEditor {
 		this.editor.destroy();
 	}
 
+	hide(): void {
+		if (this.editorEl) {
+			this.editorEl.style.visibility = "hidden";
+		}
+	}
+
+	show(): void {
+		if (this.editorEl) {
+			this.editorEl.style.visibility = "visible";
+		}
+	}
+
 	// Unload handler
 	onunload(): void {
 		if (typeof this.editor.onunload === "function") {

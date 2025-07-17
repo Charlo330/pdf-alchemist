@@ -59,6 +59,8 @@ export class JsonLinkRepository implements ILinkRepository {
 		await this.saveIndex();
 	}
 
+	
+
 	async updatePdfPath(oldPath: string, newPath: string): Promise<void> {
 		if (this.index[oldPath]) {
 			this.index[newPath] = this.index[oldPath];

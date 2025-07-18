@@ -11,6 +11,7 @@ import { NoteRepository } from "./Repository/NoteRepository";
 import { FileLinkedModal } from "./view/FileLinkedModal";
 import { StateManager } from "./StateManager";
 
+// todo bug quand on modifie fichier json directement avec vim (écrasement lien)
 interface PdfViewer {
 	eventBus: {
 		on: (event: string, callback: (event: any) => void) => EventRef;
@@ -37,7 +38,6 @@ export default class PDFNotesPlugin extends Plugin {
 
 	async onload() {
 		// Configuration du conteneur DI
-		await this.loadSettings();
 		configureContainer(this.app);
 
 		this.pdfNoteController = container.get<PdfNotesController>(
@@ -49,6 +49,9 @@ export default class PDFNotesPlugin extends Plugin {
 		);
 
 		this.stateManager = container.get<StateManager>(TYPES.StateManager);
+
+		await this.loadSettings();
+
 
 		// Enregistrement de la vue
 		this.registerView(PDF_NOTE_VIEW, (leaf) => {
@@ -247,10 +250,13 @@ export default class PDFNotesPlugin extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, this.settings, await this.loadData());
+		console.log("load", this.settings)
+		this.stateManager.setSettings(this.settings);
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+		console.log("settings", this.settings)
 		this.stateManager.setSettings(this.settings);
 	}
 

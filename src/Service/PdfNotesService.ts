@@ -3,6 +3,7 @@ import { App, TFile } from "obsidian";
 import { NoteRepository } from "src/Repository/NoteRepository";
 import { TYPES } from "src/type/types";
 import { StateManager } from "src/StateManager";
+import { normalize } from "path";
 
 @injectable()
 export class PdfNotesService {
@@ -66,16 +67,26 @@ export class PdfNotesService {
 		this.stateManager.setInSubNote(false);
 	}
 
-	async createNoteFileIfNotExists(file: TFile): Promise<string> {
-		const notePath = file?.path.replace(/\.pdf$/, ".md") || "";
-		console.log("state", this.stateManager.getSettings());
+	async createNoteFileIfNotExists(filepath: string): Promise<string> {
 
-		if (!(await this.app.vault.adapter.exists(notePath))) {
+		if (!(await this.app.vault.adapter.exists(filepath))) {
 			// TODO: Use settings.noteTemplate when available
-			await this.app.vault.create(notePath, "");
+			await this.app.vault.create(filepath, "");
 		}
 
-		return notePath;
+		return filepath;
+	}
+
+	async createFolderIfNotExists(folderPath: string): Promise<string> {
+		//let folder = this.app.vault.getFolderByPath(folderPath);
+		const normalizedPath = normalize(folderPath);
+		let folder = this.app.vault.getAbstractFileByPath(normalizedPath);
+		console.log("Creating folder if not exists:", folder);
+		// TODO MODAL POUR TRY CATCH SI ON PEUT PAS CREER LE FOLDER
+		if (!folder) {
+			folder = await this.app.vault.createFolder(normalizedPath);
+		}
+		return folder.path;
 	}
 
 	async createSubNoteFile(filePath: string): Promise<string> {

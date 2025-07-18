@@ -5,6 +5,12 @@ import { PdfNotesService } from "src/Service/PdfNotesService";
 import { StateManager } from "src/StateManager";
 import { BrokenLinkModal } from "src/view/BrokenLinkModal";
 import { FileLinkService } from "src/Service/FileLinkService";
+import {
+	relativeFolderPath,
+	rootfilePath,
+	sameFolderPath,
+	folderPath,
+} from "src/utils/filePath";
 
 @injectable()
 export class PdfNotesController {
@@ -28,8 +34,36 @@ export class PdfNotesController {
 			//let filePath = file?.path.split("/").pop()?.split(".")[0] || "";
 			//filePath = filePath + "/" + file.basename + ".md";
 			// TODO SETTINGS
+			let filePath = null;
+			const folderLocation =
+				this.stateManager.getSettings().folderLocationPath;
+			switch (this.stateManager.getSettings().folderLocation) {
+				case "root":
+					filePath = rootfilePath(file.basename);
+					break;
+				case "folder":
+					filePath = folderPath(folderLocation || "", file.basename);
+					break;
+				case "sameFolder":
+					filePath = sameFolderPath(file?.path || "", file.basename);
+					break;
+				case "relativeFolder":
+					filePath = relativeFolderPath(
+						file?.path || "",
+						folderLocation
+					);
+
+					filePath = await this.pdfNotesService.createFolderIfNotExists(filePath);
+
+					filePath = folderPath(filePath, file.basename);
+					break;
+				default:
+					filePath = sameFolderPath(file?.path || "", file.basename);
+					break;
+			}
+
 			existingLink = await this.pdfNotesService.createNoteFileIfNotExists(
-				file
+				filePath
 			);
 			await this.linkPdfToNote(file?.path || "", existingLink);
 		}

@@ -1,5 +1,6 @@
 export interface PluginSettings {
-  folderLocation: string;
   noteTemplate: string;
   autoCreateNotes: boolean;
+  folderLocation: string;
+  folderLocationPath : string | null;
 }

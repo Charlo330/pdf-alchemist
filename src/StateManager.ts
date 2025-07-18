@@ -10,6 +10,7 @@ export class StateManager {
     links: new Map(),
     navigationStack: [],
     isInSubNote: false,
+	settings: null,
   };
 
   private listeners: Set<(state: AppState) => void> = new Set();
@@ -41,6 +42,14 @@ export class StateManager {
       this.state.isInSubNote = false;
       this.notifyListeners();
     }
+  }
+
+  getSettings() {
+	return this.state.settings;
+  }
+
+  setSettings(settings: any): void {
+	this.state.settings = settings;
   }
 
   pushToNavigationStack(path: string): void {

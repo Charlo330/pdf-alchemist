@@ -25,10 +25,11 @@ export class PdfNotesController {
 		);
 
 		if (!existingLink) {
-			let filePath = file?.path.split("/").pop()?.split(".")[0] || "";
-			filePath = filePath + "/" + file.basename + ".md";
-			existingLink = await this.pdfNotesService.createSubNoteFile(
-				filePath
+			//let filePath = file?.path.split("/").pop()?.split(".")[0] || "";
+			//filePath = filePath + "/" + file.basename + ".md";
+			// TODO SETTINGS
+			existingLink = await this.pdfNotesService.createNoteFileIfNotExists(
+				file
 			);
 			await this.linkPdfToNote(file?.path || "", existingLink);
 		}

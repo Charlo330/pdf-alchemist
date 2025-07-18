@@ -9,6 +9,7 @@ import { FilePickerModal } from "./view/FilePickerModal";
 import { TYPES } from "./type/types";
 import { NoteRepository } from "./Repository/NoteRepository";
 import { FileLinkedModal } from "./view/FileLinkedModal";
+import { StateManager } from "./StateManager";
 
 interface PdfViewer {
 	eventBus: {
@@ -19,12 +20,15 @@ interface PdfViewer {
 
 export default class PDFNotesPlugin extends Plugin {
 	settings: PluginSettings = {
-		folderLocation: "",
 		noteTemplate: "# {{title}}\n\n",
 		autoCreateNotes: true,
+		folderLocation: "sameFolder",
+		folderLocationPath: null,
 	};
 
 	private pdfNoteController: PdfNotesController;
+	private stateManager: StateManager;
+
 	private unsubscribe: (() => void) | null = null;
 	private currentPdfEventListeners: Array<{
 		viewer: PdfViewer;
@@ -44,13 +48,12 @@ export default class PDFNotesPlugin extends Plugin {
 			TYPES.PdfNoteViewFactory
 		);
 
+		this.stateManager = container.get<StateManager>(TYPES.StateManager);
+
 		// Enregistrement de la vue
 		this.registerView(PDF_NOTE_VIEW, (leaf) => {
 			return pdfNoteViewFactory(leaf);
 		});
-
-		// Onglet de paramètres
-		this.addSettingTab(new PdfNotesSettingTab(this.app, this));
 
 		// Commandes
 		this.addCommand({
@@ -114,24 +117,6 @@ export default class PDFNotesPlugin extends Plugin {
 			})
 		);
 
-		// Initialisation après le chargement du workspace
-		this.app.workspace.onLayoutReady(async () => {
-			await this.initializeAfterLayout();
-		});
-	}
-
-	async initializeAfterLayout() {
-		// Ouvrir automatiquement la vue si un PDF est ouvert
-		const currentFile = this.pdfNoteController.getCurrentPdfFile();
-		if (currentFile) {
-			await this.pdfNoteController.onPdfFileChanged(currentFile);
-			this.openPdfNotes();
-		}
-
-		const noteRepo = container.get<NoteRepository>(TYPES.NoteRepository);
-
-		noteRepo.initialize();
-
 		this.registerEvent(
 			this.app.workspace.on("layout-change", () => {
 				console.log("Layout changed, setting up PDF event listeners.");
@@ -147,6 +132,26 @@ export default class PDFNotesPlugin extends Plugin {
 				console.log("📄 Fichier ouvert:", file?.path);
 			})
 		);
+
+		// Initialisation après le chargement du workspace
+		this.app.workspace.onLayoutReady(async () => {
+			await this.initializeAfterLayout();
+		});
+	}
+
+	async initializeAfterLayout() {
+		// Onglet de paramètres
+		this.addSettingTab(new PdfNotesSettingTab(this.app, this));
+		// Ouvrir automatiquement la vue si un PDF est ouvert
+		const currentFile = this.pdfNoteController.getCurrentPdfFile();
+		if (currentFile) {
+			await this.pdfNoteController.onPdfFileChanged(currentFile);
+			this.openPdfNotes();
+		}
+
+		const noteRepo = container.get<NoteRepository>(TYPES.NoteRepository);
+
+		noteRepo.initialize();
 
 		// Écouter les changements de page PDF
 		this.setupChangePageEventListeners();
@@ -246,6 +251,7 @@ export default class PDFNotesPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+		this.stateManager.setSettings(this.settings);
 	}
 
 	onunload() {

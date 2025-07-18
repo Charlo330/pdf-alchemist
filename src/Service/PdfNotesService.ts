@@ -67,7 +67,8 @@ export class PdfNotesService {
 	}
 
 	async createNoteFileIfNotExists(file: TFile): Promise<string> {
-		const notePath = file?.path.replace(/\.pdf$/, ".md") || "";	
+		const notePath = file?.path.replace(/\.pdf$/, ".md") || "";
+		console.log("state", this.stateManager.getSettings());
 
 		if (!(await this.app.vault.adapter.exists(notePath))) {
 			// TODO: Use settings.noteTemplate when available

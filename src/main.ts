@@ -76,7 +76,7 @@ export default class PDFNotesPlugin extends Plugin {
 		this.addRibbonIcon("file-text", "Open PDF Notes", () => {
 			this.openPdfNotes();
 		});
-
+		
 		this.registerEvent(
 			this.app.workspace.on("file-menu", (menu, file) => {
 				if (file instanceof TFile) {
@@ -148,7 +148,8 @@ export default class PDFNotesPlugin extends Plugin {
 		// Ouvrir automatiquement la vue si un PDF est ouvert
 		const currentFile = this.pdfNoteController.getCurrentPdfFile();
 		if (currentFile) {
-			await this.pdfNoteController.onPdfFileChanged(currentFile);
+			// TODO TESTER SI LA LIGNE EST NECESSAIRE
+			//await this.pdfNoteController.onPdfFileChanged(currentFile);
 			this.openPdfNotes();
 		}
 

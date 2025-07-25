@@ -37,6 +37,7 @@ export class PdfNotesController {
 		} else if (!existingLink && !autoCreateNotes) {
 			new BrokenLinkModal(this.app, this, file.path).open();
 			this.stateManager.setCurrentPdf(null);
+			await this.pdfNotesService.onPdfChanged();
 			return;
 		}
 		this.stateManager.setCurrentPdf(file);

@@ -16,20 +16,37 @@ export class BrokenLinkModal extends Modal {
 		this.pdfLink = pdfLink;
 	}
 
-	onOpen() {
+	async onOpen() {
 		this.contentEl.createEl("h2", {
 			text: "The linked file to this pdf is broken !",
 		});
-
+		const linkedNotePath = await this.controller.getLinkedNotePath(this.pdfLink || "");
 		if (this.pdfLink) {
 			this.contentEl
 				.createEl("p", { text: "The linked note is : " })
 				.createSpan({ cls: "link" })
-				.setText(this.pdfLink);
+				.setText(linkedNotePath || "No linked note found");
 		}
 
-		const btn = this.contentEl.createEl("button", {
+		const div = this.contentEl.createDiv({
+			cls: "modal-btn",
+		});
+
+		const createFileBtn = div.createEl("button", {
+			text: "Create a new note",
+			cls: "btn-primary",
+		});
+		createFileBtn.onclick = async () => {
+			const success = await this.controller.createNoteFileIfNotExists();
+
+			if (success) {
+				this.close();
+			}
+		};
+
+		const btn = div.createEl("button", {
 			text: "Repair Link",
+			cls: "btn-primary",
 		});
 		btn.onclick = async () => {
 			if (this.pdfLink) {

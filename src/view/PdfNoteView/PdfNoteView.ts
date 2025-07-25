@@ -57,7 +57,7 @@ export class PdfNoteView extends ItemView {
 
 		const backButton = this.buttonDiv.createEl("button", {
 			text: "Back",
-			cls: "nav-button",
+			cls: "navigation-button",
 		});
 
 		backButton.onclick = () => {
@@ -66,7 +66,7 @@ export class PdfNoteView extends ItemView {
 
 		const homeButton = this.buttonDiv.createEl("button", {
 			text: "Home",
-			cls: "nav-button",
+			cls: "navigation-button",
 		});
 
 		homeButton.onclick = () => {

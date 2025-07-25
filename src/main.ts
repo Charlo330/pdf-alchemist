@@ -129,8 +129,8 @@ export default class PDFNotesPlugin extends Plugin {
 
 		// Événements
 		this.registerEvent(
-			this.app.workspace.on("file-open", (file) => {
-				this.pdfNoteController.onPdfFileChanged(file);
+			this.app.workspace.on("file-open", async (file) => {
+				await this.pdfNoteController.onPdfFileChanged(file);
 				this.setupChangePageEventListeners();
 				console.log("📄 Fichier ouvert:", file?.path);
 			})

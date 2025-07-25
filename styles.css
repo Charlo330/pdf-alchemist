@@ -16,6 +16,11 @@
 	border-color: var(--background-modifier-border);
 }
 
+.modal-btn {
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+}
 .pdf-editor > .cm-editor > .cm-scroller {
 	padding:2% !important;
 }
@@ -26,7 +31,11 @@
 	gap: 10px;
 }
 
-.nav-button {
+.btn-primary {
+	cursor: pointer;
+}
+
+.navigation-button {
 	cursor: pointer;
 	color: var(--accent-h);
 	scale: 0.8;
@@ -38,9 +47,8 @@
 
 .pdf-nav {
 	display: flex;
-	justify-content: space-between;
 	align-items: center;
-	padding: 0.2rem;
+	justify-content: space-between;
 	border-radius: 4px;
 	height: fit-content;
 }
@@ -48,4 +56,5 @@
 .pdf-button-container {
 	display: flex;
 	color: var(--text-accent);
+	padding: 0;
 }

@@ -26,51 +26,77 @@ export class PdfNotesController {
 			this.stateManager.setCurrentPdf(null);
 			return;
 		}
-		let existingLink = await this.fileLinkService.getLinkedNotePath(
+		const existingLink = await this.fileLinkService.getLinkedNotePath(
 			file?.path || ""
 		);
 
-		if (!existingLink) {
-			//let filePath = file?.path.split("/").pop()?.split(".")[0] || "";
-			//filePath = filePath + "/" + file.basename + ".md";
-			// TODO SETTINGS
-			let filePath = null;
-			const folderLocation =
-				this.stateManager.getSettings().folderLocationPath;
-			switch (this.stateManager.getSettings().folderLocation) {
-				case "root":
-					filePath = rootfilePath(file.basename);
-					break;
-				case "folder":
-					filePath = folderPath(folderLocation || "", file.basename);
-					break;
-				case "sameFolder":
-					filePath = sameFolderPath(file?.path || "", file.basename);
-					break;
-				case "relativeFolder":
-					filePath = relativeFolderPath(
-						file?.path || "",
-						folderLocation
-					);
+		const autoCreateNotes = this.stateManager.getSettings().autoCreateNotes;
 
-					filePath = await this.pdfNotesService.createFolderIfNotExists(filePath);
+		if (!existingLink && autoCreateNotes) {
+			await this.createNoteFile(file.path, file.basename);
+		} else if (!existingLink && !autoCreateNotes) {
+			new BrokenLinkModal(this.app, this, file.path).open();
+			this.stateManager.setCurrentPdf(null);
+			return;
+		}
+		this.stateManager.setCurrentPdf(file);
+		await this.pdfNotesService.onPdfChanged();
+	}
 
-					filePath = folderPath(filePath, file.basename);
-					break;
-				default:
-					filePath = sameFolderPath(file?.path || "", file.basename);
-					break;
-			}
+	async createNoteFileIfNotExists(): Promise<boolean> {
+		const pdf = this.app.workspace.getActiveFile();
+		if (!pdf || pdf.extension !== "pdf") {
+			new Notice("No PDF file is currently open.");
+			return false;
+		}
+		if (!pdf) {
+			new Notice("No PDF file is currently open.");
+			return false;
+		}
+		if (!pdf.basename) {
+			new Notice("No PDF file is currently open.");
+			return false;
+		}
+		await this.createNoteFile(pdf.path, pdf.basename);
+		this.stateManager.setCurrentPdf(pdf);
+		return true;
+	}
 
-			existingLink = await this.pdfNotesService.createNoteFileIfNotExists(
-				filePath
-			);
-			await this.linkPdfToNote(file?.path || "", existingLink);
+	private async createNoteFile(
+		pdfPath: string,
+		basename: string
+	): Promise<void> {
+		const folderLocation =
+			this.stateManager.getSettings().folderLocationPath;
+		let filePath = null;
+		switch (this.stateManager.getSettings().folderLocation) {
+			case "root":
+				filePath = rootfilePath(basename);
+				break;
+			case "folder":
+				filePath = folderPath(folderLocation || "", basename);
+				break;
+			case "sameFolder":
+				filePath = sameFolderPath(pdfPath || "", basename);
+				break;
+			case "relativeFolder":
+				filePath = relativeFolderPath(pdfPath || "", folderLocation);
+
+				filePath = await this.pdfNotesService.createFolderIfNotExists(
+					filePath
+				);
+
+				filePath = folderPath(pdfPath, basename);
+				break;
+			default:
+				filePath = sameFolderPath(pdfPath || "", basename);
+				break;
 		}
 
-		await this.pdfNotesService.onPdfChanged();
-		this.stateManager.setCurrentPdf(file);
-		// Notify the service that PDF has changed
+		filePath = await this.pdfNotesService.createNoteFileIfNotExists(
+			filePath
+		);
+		await this.linkPdfToNote(pdfPath || "", filePath);
 	}
 
 	async onPageChanged(page: number): Promise<void> {
@@ -108,7 +134,6 @@ export class PdfNotesController {
 				);
 				// affiche la modal lien brisé
 				this.stateManager.setCurrentPdf(null);
-				new BrokenLinkModal(this.app, this, pdf.path).open();
 			}
 		}
 		return "";

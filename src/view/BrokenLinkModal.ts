@@ -18,7 +18,7 @@ export class BrokenLinkModal extends Modal {
 
 	async onOpen() {
 		this.contentEl.createEl("h2", {
-			text: "The linked file to this pdf is broken !",
+			text: "No linked note found for this PDF",
 		});
 		const linkedNotePath = await this.controller.getLinkedNotePath(this.pdfLink || "");
 		if (this.pdfLink) {

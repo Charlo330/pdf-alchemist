@@ -14,6 +14,9 @@ import {
 
 @injectable()
 export class PdfNotesController {
+	deletePdfLink(pdfPath: string) {
+		throw new Error("Method not implemented.");
+	}
 	constructor(
 		@inject(TYPES.PdfNotesService) private pdfNotesService: PdfNotesService,
 		@inject(TYPES.StateManager) private stateManager: StateManager,
@@ -145,7 +148,14 @@ export class PdfNotesController {
 		new Notice(`PDF linked to note: ${notePath}`);
 	}
 
-	async deleteLink(file: TFile): Promise<void> {
+	async deleteLink(filepath: string | null): Promise<void> {
+		const file = await this.app.vault.getFileByPath(filepath || "");
+
+		if (!file) {
+			new Notice(`File not found: ${filepath}`);
+			return;
+		}
+
 		if (file.extension === "pdf") {
 			await this.fileLinkService.deletePdfLink(file.path);
 			new Notice(`Link to PDF deleted: ${file.path}`);

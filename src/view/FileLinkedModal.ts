@@ -13,7 +13,6 @@ export class FileLinkedModal extends Modal {
 		
 		if (this.link) {
 			this.contentEl.createEl('p', { text: `filepath linked to this note : ` }).createSpan({ cls: 'link' }).setText(this.link);
-
 		} else {
 			this.contentEl.createEl('p', { text: 'No linked file found.' });
 		}

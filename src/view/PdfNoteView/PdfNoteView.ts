@@ -156,12 +156,13 @@ export class PdfNoteView extends ItemView {
 			this.buttonDiv.style.display = "block";
 			this.subTitleElement.parentElement?.toggleVisibility(false);
 		} else {
-			this.titleElement.setText("📝 No PDF opened");
+			this.titleElement.setText("No PDF opened");
 			this.pageElement.setText("");
 			this.buttonDiv.style.display = "none";
 			this.editor.hide();
 			this.editor.set("");
 			this.emptyElement.style.display = "block";
+			this.subTitleElement.parentElement?.toggleVisibility(false);
 		}
 	}
 

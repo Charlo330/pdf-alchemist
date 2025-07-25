@@ -1,4 +1,4 @@
-import { App, Scope, TFile, WorkspaceLeaf } from "obsidian";
+import { App, Scope, TFile} from "obsidian";
 
 import { EditorSelection, Prec } from "@codemirror/state";
 import { EditorView, keymap, placeholder, ViewUpdate } from "@codemirror/view";

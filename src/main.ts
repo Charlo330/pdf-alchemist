@@ -115,7 +115,7 @@ export default class PDFNotesPlugin extends Plugin {
 		this.registerEvent(
 			this.app.vault.on("delete", (file) => {
 				if (file instanceof TFile) {
-					this.pdfNoteController.deleteLink(file);
+					this.pdfNoteController.deleteLink(file.path);
 				}
 			})
 		);

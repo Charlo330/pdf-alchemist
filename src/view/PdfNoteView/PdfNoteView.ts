@@ -15,6 +15,7 @@ export const PDF_NOTE_VIEW = "pdf-note-view";
 export class PdfNoteView extends ItemView {
 	private editor: EmbeddableMarkdownEditor;
 	private titleElement: HTMLElement;
+	private subTitleElement: HTMLElement;
 	private pageElement: HTMLElement;
 	private emptyElement: HTMLElement;
 	private buttonDiv: HTMLElement;
@@ -47,8 +48,24 @@ export class PdfNoteView extends ItemView {
 		container.classList.add("pdf-notes-sidebar");
 
 		this.titleElement = container.createEl("h3", {
-			text: "📝 PDF Notes",
+			text: "",
 			cls: "pdf-title",
+		});
+
+		const divSubtitle = container.createDiv({
+			cls: "pdf-subtitle",
+		});
+
+		const icon = divSubtitle.createEl("h2", {
+			text: "PDF Notes",
+			cls: "pdf-subtitle-text",
+		});
+
+		setIcon(icon, "corner-down-right");
+
+		this.subTitleElement = divSubtitle.createEl("p", {
+			text: "Notes for the current PDF",
+			cls: "pdf-subtitle-text",
 		});
 
 		const navDiv = container.createDiv("pdf-nav");
@@ -117,25 +134,27 @@ export class PdfNoteView extends ItemView {
 
 	async onStateChange(state: AppState): Promise<void> {
 		if (state.isInSubNote) {
-			this.titleElement.setText(`📝 Sub-Notes: ${this.subNoteController.getSubNoteFileName()}`);
+			this.subTitleElement.setText(`${this.subNoteController.getSubNoteFileName()}`);
 			this.pageElement.setText(`Page ${state.currentPage}`);
 			this.emptyElement.style.display = "none";
 
 			const subNoteContent = await this.subNoteController.getSubNoteContent();
 			this.editor.show();
 			this.editor.set(subNoteContent);
+			this.subTitleElement.parentElement?.toggleVisibility(true);
 			return;
 		}
 
 		if (state.currentPdf !== null && state.currentPdf !== undefined) {
-			this.titleElement.setText(`📝 Notes: ${state.currentPdf.basename}`);
+			this.titleElement.setText(`${state.currentPdf.basename}`);
 			this.pageElement.setText(`Page ${state.currentPage}`);
 
 			const content = await this.pdfNoteController.getNoteForCurrentPage();
 			this.editor.show();
 			this.editor.set(content);
 			this.emptyElement.style.display = "none";
-			this.buttonDiv.style.display = "flex";
+			this.buttonDiv.style.display = "block";
+			this.subTitleElement.parentElement?.toggleVisibility(false);
 		} else {
 			this.titleElement.setText("📝 No PDF opened");
 			this.pageElement.setText("");

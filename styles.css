@@ -6,6 +6,29 @@
 	margin: 0%;
 }
 
+.pdf-title {
+	margin: 0;
+	padding: 0;
+}
+
+.pdf-subtitle {
+	display: flex;
+	align-items: center;
+	margin-left: 5px;
+	padding: 0%;
+	gap: 5px;
+	margin-bottom:10px;
+}
+
+.pdf-subtitle-text {
+	margin: 0;
+	padding: 0;
+}
+
+.pdf-subtitle-text > p {
+	color: var(--text-accent);
+}
+
 .pdf-editor {
 	width: 100%;
 	padding: 0%;

@@ -39,7 +39,7 @@ export class PdfNoteView extends ItemView {
 	}
 
 	getIcon(): string {
-		return "file-text";
+		return "wand-sparkles";
 	}
 
 	async onOpen() {

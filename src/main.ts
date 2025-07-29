@@ -11,7 +11,6 @@ import { NoteRepository } from "./Repository/NoteRepository";
 import { FileLinkedModal } from "./view/FileLinkedModal";
 import { StateManager } from "./StateManager";
 
-// todo bug quand on modifie fichier json directement avec vim (écrasement lien)
 interface PdfViewer {
 	eventBus: {
 		on: (event: string, callback: (event: any) => void) => EventRef;
@@ -73,7 +72,7 @@ export default class PDFNotesPlugin extends Plugin {
 		});
 
 		// Bouton ribbon
-		this.addRibbonIcon("file-text", "Open PDF Notes", () => {
+		this.addRibbonIcon("wand-sparkles", "Open PDF Notes", () => {
 			this.openPdfNotes();
 		});
 		
@@ -132,7 +131,6 @@ export default class PDFNotesPlugin extends Plugin {
 			this.app.workspace.on("file-open", async (file) => {
 				await this.pdfNoteController.onPdfFileChanged(file);
 				this.setupChangePageEventListeners();
-				console.log("📄 Fichier ouvert:", file?.path);
 			})
 		);
 
@@ -148,8 +146,6 @@ export default class PDFNotesPlugin extends Plugin {
 		// Ouvrir automatiquement la vue si un PDF est ouvert
 		const currentFile = this.pdfNoteController.getCurrentPdfFile();
 		if (currentFile) {
-			// TODO TESTER SI LA LIGNE EST NECESSAIRE
-			//await this.pdfNoteController.onPdfFileChanged(currentFile);
 			this.openPdfNotes();
 		}
 
@@ -175,7 +171,6 @@ export default class PDFNotesPlugin extends Plugin {
 			if (viewer?.eventBus) {
 				// Créer une fonction callback qu'on peut référencer
 				const callback = async (event: { pageNumber: number }) => {
-					console.log("📄 Page changing:", event.pageNumber);
 					this.pdfNoteController.onPageChanged(event.pageNumber);
 				};
 

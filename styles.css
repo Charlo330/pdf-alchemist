@@ -4,6 +4,7 @@
 	justify-content: space-around;
 	padding: 0%;
 	margin: 0%;
+	overflow: hidden !important;
 }
 
 .pdf-title {
@@ -32,6 +33,7 @@
 .pdf-editor {
 	width: 100%;
 	padding: 0%;
+	max-height: 90%;
 	margin-top:2%;
 	background-color: var(--background-modifier-border);
 	border-radius: 4px;

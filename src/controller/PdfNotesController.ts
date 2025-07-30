@@ -48,7 +48,7 @@ export class PdfNotesController {
 		await this.pdfNotesService.onPdfChanged();
 	}
 
-	async createNoteFileIfNotExists(): Promise<boolean> {
+	async createNoteFileIfNotExists(isPageMode: boolean): Promise<boolean> {
 		const pdf = this.app.workspace.getActiveFile();
 		if (!pdf || pdf.extension !== "pdf") {
 			new Notice("No PDF file is currently open.");
@@ -62,14 +62,15 @@ export class PdfNotesController {
 			new Notice("No PDF file is currently open.");
 			return false;
 		}
-		await this.createNoteFile(pdf.path, pdf.basename);
+		await this.createNoteFile(pdf.path, pdf.basename, isPageMode);
 		this.stateManager.setCurrentPdf(pdf);
 		return true;
 	}
 
 	private async createNoteFile(
 		pdfPath: string,
-		basename: string
+		basename: string,
+		isPageMode: boolean
 	): Promise<void> {
 		const folderLocation =
 			this.stateManager.getSettings().folderLocationPath;
@@ -101,7 +102,7 @@ export class PdfNotesController {
 		filePath = await this.pdfNotesService.createNoteFileIfNotExists(
 			filePath
 		);
-		await this.linkPdfToNote(pdfPath || "", filePath);
+		await this.linkPdfToNote(pdfPath || "", filePath, isPageMode);
 	}
 
 	async onPageChanged(page: number): Promise<void> {
@@ -146,8 +147,8 @@ export class PdfNotesController {
 		return "";
 	}
 
-	async linkPdfToNote(pdfPath: string, notePath: string): Promise<void> {
-		await this.fileLinkService.linkPdfToNote(pdfPath, notePath);
+	async linkPdfToNote(pdfPath: string, notePath: string, isPageMode: boolean): Promise<void> {
+		await this.fileLinkService.linkPdfToNote(pdfPath, notePath, isPageMode);
 		new Notice(`PDF linked to note: ${notePath}`);
 	}
 

@@ -267,6 +267,7 @@ export class PdfNoteView extends ItemView {
 		return null;
 	}
 
+	// TODO AJOUTER la méthode de linkage (page par page ou document entier)
 	async onStateChange(state: AppState): Promise<void> {
 		if (state.isInSubNote) {
 			this.subTitleElement.setText(

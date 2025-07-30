@@ -47,11 +47,15 @@ export class FilePickerModal extends Modal {
 			if (await this.app.vault.adapter.exists(indexPath)) {
 				const content = await this.app.vault.adapter.read(indexPath);
 				const index = JSON.parse(content);
-				
-				this.allLinks = Object.entries(index).map(([pdfPath, notePath]) => ({
-					pdfPath,
-					notePath: notePath as string
-				}));
+
+				this.allLinks = Object.entries(index).map(([pdfPath, properties]) => {
+					const props = properties as { notePath: string; isLinked: boolean };
+					return {
+						pdfPath,
+						notePath: props.notePath,
+						isLinked: props.isLinked
+					};
+				});
 			}
 		} catch (error) {
 			console.warn("Failed to load existing links:", error);

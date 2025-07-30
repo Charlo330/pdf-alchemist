@@ -32,12 +32,30 @@ export class BrokenLinkModal extends Modal {
 			cls: "modal-btn",
 		});
 
-		const createFileBtn = div.createEl("button", {
+		const divCreate = div.createDiv({
+			cls: "modal-btn-create",
+		});
+		// create toggle
+		divCreate.createEl("label", {
+			text: "Page Mode",
+			cls: "file-picker-restore-selection-label",
+		});
+		const toggle = divCreate.createEl("input", {
+			text: "Page mode",
+			type: "checkbox",
+			cls: "file-picker-restore-selection",
+		});
+
+		toggle.checked = true;
+
+
+		const createFileBtn = divCreate.createEl("button", {
 			text: "Create a new note",
 			cls: "btn-primary",
 		});
 		createFileBtn.onclick = async () => {
-			const success = await this.controller.createNoteFileIfNotExists();
+			const isPageMode = toggle.checked;
+			const success = await this.controller.createNoteFileIfNotExists(isPageMode);
 
 			if (success) {
 				this.close();

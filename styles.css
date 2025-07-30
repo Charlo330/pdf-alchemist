@@ -81,6 +81,12 @@
 	height: fit-content;
 }
 
+.modal-btn-create {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
 .pdf-button-container {
 	display: flex;
 	color: var(--text-accent);

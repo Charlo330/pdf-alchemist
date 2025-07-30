@@ -13,8 +13,8 @@ export class FileLinkService {
 		@inject(TYPES.App) private app: App
 	) {}
 
-	async linkPdfToNote(pdfPath: string, notePath: string): Promise<void> {
-		const link: PdfNoteLink = { pdfPath, notePath };
+	async linkPdfToNote(pdfPath: string, notePath: string, isPageMode: boolean): Promise<void> {
+		const link: PdfNoteLink = { pdfPath: pdfPath, notePath: notePath, isPageMode: isPageMode };
 		await this.linkRepo.save(link);
 	}
 

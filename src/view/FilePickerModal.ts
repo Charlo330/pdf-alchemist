@@ -104,6 +104,7 @@ export class FilePickerModal extends Modal {
 				pdfInput.value = this.pdfPath || "";
 				mdInput.value = "";
 				new Notice("Link created successfully!");
+				this.close();
 			} else {
 				new Notice("Please fill in both PDF and Markdown file paths.");
 			}
@@ -206,9 +207,10 @@ export class FilePickerModal extends Modal {
 
 		deleteBtn.onclick = async () => {
 			if (confirm(`Are you sure you want to delete the link between:\n${link.pdfPath}\n↓\n${link.notePath}`)) {
-				await this.controller.deleteLink(link.pdfPath);
-				await this.loadAllLinks(); // Reload links
-				this.filterAndDisplayLinks(); // Refresh display
+				const file  = this.controller.getFile(link.pdfPath)
+				await this.controller.deleteLink(file);
+				await this.loadAllLinks();
+				this.filterAndDisplayLinks();
 			}
 		};
 

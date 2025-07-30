@@ -38,6 +38,7 @@ export class PdfNotesController {
 		if (!existingLink && autoCreateNotes) {
 			await this.createNoteFile(file.path, file.basename);
 		} else if (!existingLink && !autoCreateNotes) {
+			// Show a modal to inform the user
 			new BrokenLinkModal(this.app, this, file.path).open();
 			this.stateManager.setCurrentPdf(null);
 			await this.pdfNotesService.onPdfChanged();
@@ -133,9 +134,11 @@ export class PdfNotesController {
 			} catch (error) {
 				console.warn("Failed to get note for current page:", error);
 
-				new Notice(
-					"Failed to retrieve note for current page. Please check the console for details."
-				);
+				new BrokenLinkModal(
+					this.app,
+					this,
+					pdf.path
+				).open(); // Show broken link modal
 				// affiche la modal lien brisé
 				this.stateManager.setCurrentPdf(null);
 			}
@@ -148,8 +151,7 @@ export class PdfNotesController {
 		new Notice(`PDF linked to note: ${notePath}`);
 	}
 
-	async deleteLink(filepath: string | null): Promise<void> {
-		const file = await this.app.vault.getFileByPath(filepath || "");
+	async deleteLink(file: TFile | null): Promise<void> {
 
 		if (!file) {
 			return;
@@ -162,6 +164,7 @@ export class PdfNotesController {
 			const pdfPath = await this.fileLinkService.getLinkedPdfPath(
 				file.path
 			);
+			console.log("pdfPath", pdfPath);
 			if (pdfPath) {
 				await this.fileLinkService.deleteNoteLink(file.path);
 				new Notice(`Link to note deleted: ${file.path}`);
@@ -169,6 +172,14 @@ export class PdfNotesController {
 				new Notice(`No linked PDF found for note: ${file.path}`);
 			}
 		}
+	}
+
+	getFile(filePath: string): TFile | null {
+		const file = this.app.vault.getAbstractFileByPath(filePath);
+		if (file instanceof TFile) {
+			return file;
+		}
+		return null;
 	}
 
 	async getLinkedNotePath(pdfPath: string): Promise<string | null> {
@@ -188,15 +199,5 @@ export class PdfNotesController {
 				this.fileLinkService.updateNotePath(oldPath, file.path);
 			}
 		}
-	}
-
-	getCurrentPdfFile(): TFile | null {
-		for (const leaf of this.app.workspace.getLeavesOfType("pdf")) {
-			const view = leaf.view as any;
-			if (view && view.file?.extension === "pdf") {
-				return view.file;
-			}
-		}
-		return null;
 	}
 }

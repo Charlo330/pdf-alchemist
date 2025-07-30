@@ -180,9 +180,10 @@ export class PdfNoteView extends ItemView {
 		);
 
 		this.registerEvent(
-			this.app.vault.on("delete", (file) => {
+			this.app.vault.on("delete", async (file) => {
 				if (file instanceof TFile) {
-					this.pdfNoteController.deleteLink(file.path);
+					console.log("File deleted:", file);
+					await this.pdfNoteController.deleteLink(file);
 				}
 			})
 		);
@@ -190,8 +191,8 @@ export class PdfNoteView extends ItemView {
 		this.registerEvent(
 			this.app.workspace.on("file-open", async (file) => {
 				console.log("File opened:", file);
-				this.setupChangePageEventListeners();
 				await this.pdfNoteController.onPdfFileChanged(file);
+				this.setupChangePageEventListeners();
 			})
 		);
 

@@ -36,7 +36,11 @@ export class PdfNotesController {
 		const settings = this.stateManager.getSettings();
 
 		if (!existingLink && settings.autoCreateNotes) {
-			await this.createNoteFile(file.path, file.basename, settings.isPageMode);
+			await this.createNoteFile(
+				file.path,
+				file.basename,
+				settings.isPageMode
+			);
 		} else if (!existingLink && !settings.autoCreateNotes) {
 			// Show a modal to inform the user
 			new BrokenLinkModal(this.app, this, file.path).open();
@@ -45,6 +49,7 @@ export class PdfNotesController {
 			return;
 		}
 		this.stateManager.setCurrentPdf(file);
+		this.stateManager.setIsPageMode(existingLink?.isPageMode || null);
 		await this.pdfNotesService.onPdfChanged();
 	}
 
@@ -64,6 +69,7 @@ export class PdfNotesController {
 		}
 		await this.createNoteFile(pdf.path, pdf.basename, isPageMode);
 		this.stateManager.setCurrentPdf(pdf);
+		this.stateManager.setIsPageMode(isPageMode);
 		return true;
 	}
 
@@ -117,16 +123,43 @@ export class PdfNotesController {
 		}
 		if (!state.currentPdf) return;
 
-		await this.pdfNotesService.saveNote(content);
+		if (!state.isPageMode) {
+			const pdfPath = state.currentPdf.path;
+			if (!pdfPath) {
+				new Notice("No PDF file is currently open.");
+				return;
+			}
+
+			const linkedNote = await this.fileLinkService.getLinkedNotePath(
+				pdfPath
+			);
+
+			console.log("linkedNote", linkedNote);
+
+			this.pdfNotesService.saveNoteByFilePath(linkedNote?.notePath || "", content);
+		} else {
+			await this.pdfNotesService.saveNoteByPage(content);
+		}
 	}
 
-	async getNoteForCurrentPage(): Promise<string> {
+	async getNoteContent(): Promise<string> {
 		const state = this.stateManager.getState();
 		if (!state.currentPdf) return "";
 
 		const pdf = this.stateManager.getCurrentPdf();
+		console.log("pageMode", state.isPageMode);
 
-		if (pdf && (await this.fileLinkService.getLinkedNotePath(pdf.path))) {
+		if (!pdf) {
+			return "";
+		}
+
+		const linkedNote = await this.fileLinkService.getLinkedNotePath(pdf.path);
+
+		if (pdf && !linkedNote) {
+			return "";
+		}
+
+		if (pdf && this.stateManager.getIsPageMode()) {
 			try {
 				const note = await this.pdfNotesService.getNotesForPage(
 					state.currentPage
@@ -135,25 +168,26 @@ export class PdfNotesController {
 			} catch (error) {
 				console.warn("Failed to get note for current page:", error);
 
-				new BrokenLinkModal(
-					this.app,
-					this,
-					pdf.path
-				).open(); // Show broken link modal
+				new BrokenLinkModal(this.app, this, pdf.path).open();
 				// affiche la modal lien brisé
 				this.stateManager.setCurrentPdf(null);
 			}
+		} else if (pdf && !this.stateManager.getIsPageMode()) {
+			return await this.pdfNotesService.getNotesContent(linkedNote?.notePath || "");
 		}
 		return "";
 	}
 
-	async linkPdfToNote(pdfPath: string, notePath: string, isPageMode: boolean): Promise<void> {
+	async linkPdfToNote(
+		pdfPath: string,
+		notePath: string,
+		isPageMode: boolean
+	): Promise<void> {
 		await this.fileLinkService.linkPdfToNote(pdfPath, notePath, isPageMode);
 		new Notice(`PDF linked to note: ${notePath}`);
 	}
 
 	async deleteLink(file: TFile | null): Promise<void> {
-
 		if (!file) {
 			return;
 		}
@@ -184,11 +218,13 @@ export class PdfNotesController {
 	}
 
 	async getLinkedNotePath(pdfPath: string): Promise<string | null> {
-		return await this.fileLinkService.getLinkedNotePath(pdfPath);
+		const linkedNote = await this.fileLinkService.getLinkedNotePath(pdfPath);
+		return linkedNote?.notePath || null;
 	}
 
 	async getLinkedPdfPath(notePath: string): Promise<string | null> {
-		return await this.fileLinkService.getLinkedPdfPath(notePath);
+		const linkedNote = await this.fileLinkService.getLinkedPdfPath(notePath);
+		return linkedNote?.pdfPath || null;
 	}
 
 	async updateFilesPath(file: TAbstractFile, oldPath: string) {

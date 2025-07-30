@@ -17,6 +17,7 @@ export const PDF_NOTE_VIEW = "pdf-note-view";
 export class PdfNoteView extends ItemView {
 	private editor: EmbeddableMarkdownEditor;
 	private titleElement: HTMLElement;
+	private titleIcon: HTMLElement;
 	private subTitleElement: HTMLElement;
 	private pageElement: HTMLElement;
 	private emptyElement: HTMLElement;
@@ -55,7 +56,21 @@ export class PdfNoteView extends ItemView {
 
 		await this.createEventListeners();
 
-		this.titleElement = container.createEl("h3", {
+		const divTitle = container.createDiv({
+			cls: "pdf-title-container",
+		});
+
+		this.titleIcon = divTitle.createDiv({
+			cls: "pdf-title-icon",
+		});
+
+		if (this.stateManager.getIsPageMode()) {
+			setIcon(this.titleIcon, "file-stack");
+		} else {
+			setIcon(this.titleIcon, "file");
+		}
+
+		this.titleElement = divTitle.createEl("h3", {
 			text: "",
 			cls: "pdf-title",
 		});
@@ -234,7 +249,10 @@ export class PdfNoteView extends ItemView {
 				try {
 					viewer.eventBus.off("pagechanging", callback);
 				} catch (error) {
-					console.warn("Error during page changing event cleanup", error);
+					console.warn(
+						"Error during page changing event cleanup",
+						error
+					);
 				}
 			}
 		}
@@ -267,7 +285,6 @@ export class PdfNoteView extends ItemView {
 		return null;
 	}
 
-	// TODO AJOUTER la méthode de linkage (page par page ou document entier)
 	async onStateChange(state: AppState): Promise<void> {
 		if (state.isInSubNote) {
 			this.subTitleElement.setText(
@@ -288,13 +305,19 @@ export class PdfNoteView extends ItemView {
 			this.titleElement.setText(`${state.currentPdf.basename}`);
 			this.pageElement.setText(`Page ${state.currentPage}`);
 
-			const content =
-				await this.pdfNoteController.getNoteForCurrentPage();
+			const content = await this.pdfNoteController.getNoteContent();
 			this.editor.show();
 			this.editor.set(content);
 			this.emptyElement.style.display = "none";
 			this.buttonDiv.style.display = "block";
 			this.subTitleElement.parentElement?.toggleVisibility(false);
+
+			if (this.stateManager.getIsPageMode()) {
+				setIcon(this.titleIcon, "file-stack");
+			} else {
+				setIcon(this.titleIcon, "file");
+			}
+			
 		} else {
 			this.titleElement.setText("No PDF opened");
 			this.pageElement.setText("");

@@ -28,14 +28,14 @@ export class FileLinkService {
 		return filepath || null;
 	}
 
-	async getLinkedNotePath(pdfPath: string): Promise<string | null> {
+	async getLinkedNotePath(pdfPath: string): Promise<PdfNoteLink | null> {
 		const link = await this.linkRepo.findByPdf(pdfPath);
-		return link?.notePath || null;
+		return link || null;
 	}
 
-	async getLinkedPdfPath(notePath: string): Promise<string | null> {
+	async getLinkedPdfPath(notePath: string): Promise<PdfNoteLink | null> {
 		const link = await this.linkRepo.findByNote(notePath);
-		return link?.pdfPath || null;
+		return link || null;
 	}
 
 	async updatePdfPath(oldPath: string, newPath: string): Promise<void> {

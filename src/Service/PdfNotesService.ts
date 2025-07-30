@@ -38,7 +38,11 @@ export class PdfNotesService {
 		return await this.noteRepo.findSubNoteContent(subNotePath);
 	}
 
-	async saveNote(content: string): Promise<void> {
+	async getNotesContent(filePath: string) {
+		return await this.noteRepo.findSubNoteContent(filePath)
+	}
+
+	async saveNoteByPage(content: string): Promise<void> {
 		await this.ensureInitialized();
 		const pdfPath = this.stateManager.getCurrentPdf()?.path;
 		console.log("pdfPath", pdfPath);
@@ -47,6 +51,10 @@ export class PdfNotesService {
 			console.log("Saving note for PDF:", pdfPath, "Page:", page, "Content:", content);
 			await this.noteRepo.save(pdfPath, page, content);
 		}
+	}
+
+	async saveNoteByFilePath(filePath: string, content: string): Promise<void> {
+		await this.noteRepo.saveToFilePath(filePath, content);
 	}
 
 	async saveSubNote(content: string): Promise<void> {

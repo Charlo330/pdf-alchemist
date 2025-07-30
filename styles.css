@@ -7,9 +7,23 @@
 	overflow: hidden !important;
 }
 
+.pdf-title-container {
+	display: flex;
+	gap: 5px;
+	align-items: end;
+	padding: 0%;
+	margin: 0%;
+	text-align: start;
+}
+
+.pdf-title-icon {
+	max-height: fit-content;
+}
+
 .pdf-title {
 	margin: 0;
 	padding: 0;
+	text-align: start;
 }
 
 .pdf-subtitle {

@@ -7,5 +7,6 @@ export interface AppState {
   links: Map<string, PdfNoteLink>;
   navigationStack: string[];
   isInSubNote: boolean;
+  isPageMode: boolean | null;
   settings: any;
 }

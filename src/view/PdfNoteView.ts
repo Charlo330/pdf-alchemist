@@ -23,10 +23,9 @@ export class PdfNoteView extends ItemView {
 	private emptyElement: HTMLElement;
 	private buttonDiv: HTMLElement;
 	private unsubscribe: (() => void) | null = null;
-	private currentPdfEventListeners: Array<{
-		viewer: PdfViewer;
-		callback: (event: { pageNumber: number }) => void;
-	}> = [];
+	private lockBtn: HTMLButtonElement;
+	private lockBtnState = false;
+	private currentPdfViewer: any;
 
 	constructor(
 		leaf: WorkspaceLeaf,
@@ -117,7 +116,34 @@ export class PdfNoteView extends ItemView {
 
 		setIcon(homeButton, "home");
 
-		this.pageElement = navDiv.createEl("h5", {
+		const pageDiv = navDiv.createDiv("pdf-container-page");
+
+		this.lockBtn = pageDiv.createEl("button", {
+			text: "Page Mode",
+			cls: "page-lock-button",
+		});
+		this.lockBtn.style.color = "var(--green)";
+
+		this.lockBtn.onclick = () => {
+			if (this.lockBtnState) {
+				setIcon(this.lockBtn, "lock-open");
+				this.lockBtn.style.color = "var(--green)";
+				const file = this.stateManager.getCurrentPdf();
+
+				if (file) {
+					this.setupChangePageEventListeners(file);
+				}
+			} else {
+				setIcon(this.lockBtn, "lock");
+				this.lockBtn.style.color = "var(--red)";
+				this.cleanupPdfEventListeners();
+			}
+			this.lockBtnState = !this.lockBtnState;
+		};
+
+		setIcon(this.lockBtn, "lock-open");
+
+		this.pageElement = pageDiv.createEl("h5", {
 			text: "Page 1",
 			cls: "pdf-page-title",
 		});
@@ -155,6 +181,13 @@ export class PdfNoteView extends ItemView {
 		);
 
 		this.onStateChange(this.stateManager.getState());
+
+		const file = this.stateManager.getCurrentPdf();
+		console.log("Current PDF file:", file);
+		if (file) {
+			this.setupChangePageEventListeners(file);
+			console.log("Setting up event listeners for file:", file.path);
+		}
 	}
 
 	async createEventListeners() {
@@ -207,61 +240,66 @@ export class PdfNoteView extends ItemView {
 			this.app.workspace.on("file-open", async (file) => {
 				console.log("File opened:", file);
 				await this.pdfNoteController.onPdfFileChanged(file);
-				this.setupChangePageEventListeners();
+				if (file) {
+					this.setupChangePageEventListeners(file);
+				}
 			})
 		);
 
 		this.app.workspace.onLayoutReady(() => {
-			this.setupChangePageEventListeners();
+			const file = this.stateManager.getCurrentPdf();
+			if (file) {
+				this.setupChangePageEventListeners(file);
+			}
 		});
 	}
 
-	private setupChangePageEventListeners() {
+	private setupChangePageEventListeners(file: TFile) {
 		this.cleanupPdfEventListeners();
 
-		const pdfViewers = this.findPdfViewer();
+		const view = this.app.workspace
+			.getLeavesOfType("pdf")
+			.find((leaf) => leaf.view?.file?.path === file?.path)?.view;
 
-		if (!pdfViewers || pdfViewers.length === 0) {
-			console.warn("Aucun viewer PDF trouvé");
-			return;
-		}
+		if (view) {
+			const viewer =
+				view?.previewMode?.renderer?.pdfViewer ||
+				view?.pdfViewer ||
+				view?.viewer?.child?.pdfViewer;
 
-		for (const viewer of pdfViewers) {
-			if (viewer?.eventBus) {
-				const callback = async (event: { pageNumber: number }) => {
-					this.pdfNoteController.onPageChanged(event.pageNumber);
-					console.log("Page changed to:", event.pageNumber);
-				};
+			console.log("viewer", viewer);
 
-				viewer.eventBus.on("pagechanging", callback);
+			const callback = async (event: { pageNumber: number }) => {
+				this.pdfNoteController.onPageChanged(event.pageNumber);
+				console.log("Page changed to:", event.pageNumber);
+			};
 
-				this.currentPdfEventListeners.push({
-					viewer: viewer,
-					callback: callback,
-				});
-			}
+			viewer.eventBus.on("pagechanging", callback);
+
+			this.currentPdfViewer = { viewer: viewer, callback: callback };
 		}
 	}
 
 	private cleanupPdfEventListeners() {
-		for (const { viewer, callback } of this.currentPdfEventListeners) {
-			if (viewer?.eventBus && callback) {
-				try {
-					viewer.eventBus.off("pagechanging", callback);
-				} catch (error) {
-					console.warn(
-						"Error during page changing event cleanup",
-						error
-					);
-				}
+		const viewer = this.currentPdfViewer?.viewer;
+		const callback = this.currentPdfViewer?.callback;
+
+		console.log("viewer callback", viewer, callback);
+
+		if (viewer?.eventBus && callback) {
+			try {
+				viewer.eventBus.off("pagechanging", callback);
+			} catch (error) {
+				console.warn("Error during page changing event cleanup", error);
 			}
 		}
 
-		this.currentPdfEventListeners = [];
+		this.currentPdfViewer = null;
 	}
 
 	findPdfViewer(): PdfViewer[] | null {
 		const leaves = this.app.workspace.getLeavesOfType("pdf");
+		console.log("leaf", leaves);
 
 		const pdfViewers: PdfViewer[] = [];
 
@@ -298,6 +336,7 @@ export class PdfNoteView extends ItemView {
 			this.editor.show();
 			this.editor.set(subNoteContent);
 			this.subTitleElement.parentElement?.toggleVisibility(true);
+			this.lockBtn.hide();
 			return;
 		}
 
@@ -311,13 +350,15 @@ export class PdfNoteView extends ItemView {
 			this.emptyElement.style.display = "none";
 			this.buttonDiv.style.display = "block";
 			this.subTitleElement.parentElement?.toggleVisibility(false);
+			this.titleIcon.show();
 
 			if (this.stateManager.getIsPageMode()) {
 				setIcon(this.titleIcon, "file-stack");
+				this.lockBtn.show();
 			} else {
 				setIcon(this.titleIcon, "file");
+				this.lockBtn.hide();
 			}
-			
 		} else {
 			this.titleElement.setText("No PDF opened");
 			this.pageElement.setText("");
@@ -326,6 +367,8 @@ export class PdfNoteView extends ItemView {
 			this.editor.set("");
 			this.emptyElement.style.display = "block";
 			this.subTitleElement.parentElement?.toggleVisibility(false);
+			this.titleIcon.hide();
+			this.lockBtn.hide();
 		}
 	}
 

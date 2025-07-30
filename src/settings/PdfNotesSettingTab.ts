@@ -26,6 +26,18 @@ export class PdfNotesSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName("Page Mode")
+			.setDesc("Enable page changing for linked notes")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.isPageMode)
+					.onChange(async (value) => {
+						this.plugin.settings.isPageMode = value;
+						this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
 			.setName("Notes folder location")
 			.setDesc("Where to create new note files")
 			.addDropdown((dropdown) =>

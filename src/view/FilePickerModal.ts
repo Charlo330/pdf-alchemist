@@ -102,7 +102,7 @@ export class FilePickerModal extends Modal {
 		
 		linkBtn.onclick = async () => {
 			if (pdfInput.value && mdInput.value) {
-				await this.controller.linkPdfToNote(pdfInput.value, mdInput.value);
+				await this.controller.linkPdfToNote(pdfInput.value, mdInput.value, this.controller.getSettings().isPageMode);
 				await this.loadAllLinks(); // Reload links
 				this.filterAndDisplayLinks(); // Refresh display
 				pdfInput.value = this.pdfPath || "";

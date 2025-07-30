@@ -46,8 +46,7 @@ export class BrokenLinkModal extends Modal {
 			cls: "file-picker-restore-selection",
 		});
 
-		toggle.checked = true;
-
+		toggle.checked = this.controller.getSettings().isPageMode;
 
 		const createFileBtn = divCreate.createEl("button", {
 			text: "Create a new note",

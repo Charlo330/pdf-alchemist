@@ -12,10 +12,10 @@ import { StateManager } from "./StateManager";
 
 export default class PDFNotesPlugin extends Plugin {
 	settings: PluginSettings = {
-		noteTemplate: "# {{title}}\n\n",
 		autoCreateNotes: true,
 		folderLocation: "sameFolder",
 		folderLocationPath: null,
+		isPageMode: true
 	};
 
 	private pdfNoteController: PdfNotesController;

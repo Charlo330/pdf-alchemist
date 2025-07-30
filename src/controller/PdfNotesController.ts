@@ -33,11 +33,11 @@ export class PdfNotesController {
 			file?.path || ""
 		);
 
-		const autoCreateNotes = this.stateManager.getSettings().autoCreateNotes;
+		const settings = this.stateManager.getSettings();
 
-		if (!existingLink && autoCreateNotes) {
-			await this.createNoteFile(file.path, file.basename);
-		} else if (!existingLink && !autoCreateNotes) {
+		if (!existingLink && settings.autoCreateNotes) {
+			await this.createNoteFile(file.path, file.basename, settings.isPageMode);
+		} else if (!existingLink && !settings.autoCreateNotes) {
 			// Show a modal to inform the user
 			new BrokenLinkModal(this.app, this, file.path).open();
 			this.stateManager.setCurrentPdf(null);
@@ -200,5 +200,9 @@ export class PdfNotesController {
 				this.fileLinkService.updateNotePath(oldPath, file.path);
 			}
 		}
+	}
+
+	getSettings() {
+		return this.stateManager.getSettings();
 	}
 }

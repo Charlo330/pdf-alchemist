@@ -33,7 +33,8 @@
 .pdf-editor {
 	width: 100%;
 	padding: 0%;
-	max-height: 90%;
+	height: 85%;
+	max-height: 85%;
 	margin-top:2%;
 	background-color: var(--background-primary);
 	border-radius: 4px;

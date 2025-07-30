@@ -152,7 +152,6 @@ export class PdfNotesController {
 		const file = await this.app.vault.getFileByPath(filepath || "");
 
 		if (!file) {
-			new Notice(`File not found: ${filepath}`);
 			return;
 		}
 

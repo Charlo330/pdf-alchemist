@@ -14,19 +14,6 @@ export class PdfNotesSettingTab extends PluginSettingTab {
 		containerEl.createEl("h2", { text: "PDF Notes Settings" });
 
 		new Setting(containerEl)
-			.setName("Note template")
-			.setDesc("Template for new note files")
-			.addTextArea((text) =>
-				text
-					.setPlaceholder("# {{title}}\n\n")
-					.setValue(this.plugin.settings.noteTemplate)
-					.onChange(async (value) => {
-						this.plugin.settings.noteTemplate = value;
-						this.plugin.saveSettings();
-					})
-			);
-
-		new Setting(containerEl)
 			.setName("Auto-create notes")
 			.setDesc("Automatically create note files for new PDFs")
 			.addToggle((toggle) =>

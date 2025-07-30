@@ -1,4 +1,4 @@
-import { App, Scope, TFile, WorkspaceLeaf } from "obsidian";
+import { App, Scope, TFile} from "obsidian";
 
 import { EditorSelection, Prec } from "@codemirror/state";
 import { EditorView, keymap, placeholder, ViewUpdate } from "@codemirror/view";
@@ -327,6 +327,18 @@ export class EmbeddableMarkdownEditor {
 		this.containerEl.empty();
 
 		this.editor.destroy();
+	}
+
+	hide(): void {
+		if (this.editorEl) {
+			this.editorEl.style.visibility = "hidden";
+		}
+	}
+
+	show(): void {
+		if (this.editorEl) {
+			this.editorEl.style.visibility = "visible";
+		}
 	}
 
 	// Unload handler

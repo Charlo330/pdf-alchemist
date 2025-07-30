@@ -22,5 +22,5 @@
   },
   "include": [
     "src/**/*.ts"
-  ]
+, "old/container.ts", "old/ExampleSettingTab.ts", "old/file.ts", "old/FilePickerModal.ts", "old/FolderSuggest.ts", "old/main.ts", "old/notes.ts", "old/PdfNoteLinker.ts", "old/pdfNoteView.ts", "old/sidebar.ts", "old/TimeModal.ts"  ]
 }

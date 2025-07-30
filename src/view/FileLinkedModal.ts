@@ -1,6 +1,6 @@
 import { Modal, App } from 'obsidian';
 
-export class TimedModal extends Modal {
+export class FileLinkedModal extends Modal {
 	private link: string | null = null;
 
 	constructor(app: App, link:string | null) {
@@ -13,7 +13,6 @@ export class TimedModal extends Modal {
 		
 		if (this.link) {
 			this.contentEl.createEl('p', { text: `filepath linked to this note : ` }).createSpan({ cls: 'link' }).setText(this.link);
-
 		} else {
 			this.contentEl.createEl('p', { text: 'No linked file found.' });
 		}

@@ -1,22 +1,14 @@
 import { configureContainer, container, PdfNoteViewFactory } from "./container";
 import { PdfNotesController } from "./controller/PdfNotesController";
 
-import { EventRef, Plugin, TFile } from "obsidian";
+import { Plugin } from "obsidian";
 import { PluginSettings } from "./type/PluginSettings";
-import { PDF_NOTE_VIEW } from "./view/PdfNoteView/PdfNoteView";
+import { PDF_NOTE_VIEW } from "./view/PdfNoteView";
 import { PdfNotesSettingTab } from "./settings/PdfNotesSettingTab";
 import { FilePickerModal } from "./view/FilePickerModal";
 import { TYPES } from "./type/types";
 import { NoteRepository } from "./Repository/NoteRepository";
-import { FileLinkedModal } from "./view/FileLinkedModal";
 import { StateManager } from "./StateManager";
-
-interface PdfViewer {
-	eventBus: {
-		on: (event: string, callback: (event: any) => void) => EventRef;
-		off: (event: string, callback: (event: any) => void) => void;
-	};
-}
 
 export default class PDFNotesPlugin extends Plugin {
 	settings: PluginSettings = {
@@ -30,13 +22,8 @@ export default class PDFNotesPlugin extends Plugin {
 	private stateManager: StateManager;
 
 	private unsubscribe: (() => void) | null = null;
-	private currentPdfEventListeners: Array<{
-		viewer: PdfViewer;
-		callback: (event: { pageNumber: number }) => void;
-	}> = [];
 
 	async onload() {
-		// Configuration du conteneur DI
 		configureContainer(this.app);
 
 		this.pdfNoteController = container.get<PdfNotesController>(
@@ -51,13 +38,10 @@ export default class PDFNotesPlugin extends Plugin {
 
 		await this.loadSettings();
 
-
-		// Enregistrement de la vue
 		this.registerView(PDF_NOTE_VIEW, (leaf) => {
 			return pdfNoteViewFactory(leaf);
 		});
 
-		// Commandes
 		this.addCommand({
 			id: "open-pdf-notes",
 			name: "Open PDF Notes",
@@ -71,70 +55,11 @@ export default class PDFNotesPlugin extends Plugin {
 				new FilePickerModal(this.app, this.pdfNoteController).open(),
 		});
 
-		// Bouton ribbon
 		this.addRibbonIcon("wand-sparkles", "Open PDF Notes", () => {
 			this.openPdfNotes();
 		});
-		
-		this.registerEvent(
-			this.app.workspace.on("file-menu", (menu, file) => {
-				if (file instanceof TFile) {
-					menu.addItem((item) => {
-						item.setTitle("Show linked file")
-							.setIcon("link")
-							.onClick(async () => {
-								let linkedPath = null;
-								if (file.extension === "pdf") {
-									linkedPath =
-										await this.pdfNoteController.getLinkedNotePath(
-											file.path
-										);
-								} else if (file.extension === "md") {
-									linkedPath =
-										await this.pdfNoteController.getLinkedPdfPath(
-											file.path
-										);
-								}
-								new FileLinkedModal(
-									this.app,
-									linkedPath
-								).open();
-							});
-					});
-				}
-			})
-		);
 
-		this.registerEvent(
-			this.app.vault.on("rename", (file, oldPath) => {
-				this.pdfNoteController.updateFilesPath(file, oldPath);
-			})
-		);
 
-		this.registerEvent(
-			this.app.vault.on("delete", (file) => {
-				if (file instanceof TFile) {
-					this.pdfNoteController.deleteLink(file.path);
-				}
-			})
-		);
-
-		this.registerEvent(
-			this.app.workspace.on("layout-change", () => {
-				console.log("Layout changed, setting up PDF event listeners.");
-				this.setupChangePageEventListeners();
-			})
-		);
-
-		// Événements
-		this.registerEvent(
-			this.app.workspace.on("file-open", async (file) => {
-				await this.pdfNoteController.onPdfFileChanged(file);
-				this.setupChangePageEventListeners();
-			})
-		);
-
-		// Initialisation après le chargement du workspace
 		this.app.workspace.onLayoutReady(async () => {
 			await this.initializeAfterLayout();
 		});
@@ -143,88 +68,6 @@ export default class PDFNotesPlugin extends Plugin {
 	async initializeAfterLayout() {
 		// Onglet de paramètres
 		this.addSettingTab(new PdfNotesSettingTab(this.app, this));
-		// Ouvrir automatiquement la vue si un PDF est ouvert
-		const currentFile = this.pdfNoteController.getCurrentPdfFile();
-		if (currentFile) {
-			this.openPdfNotes();
-		}
-
-		const noteRepo = container.get<NoteRepository>(TYPES.NoteRepository);
-
-		noteRepo.initialize();
-
-		// Écouter les changements de page PDF
-		this.setupChangePageEventListeners();
-	}
-
-	private setupChangePageEventListeners() {
-		this.cleanupPdfEventListeners();
-
-		const pdfViewers = this.findPdfViewer();
-
-		if (!pdfViewers || pdfViewers.length === 0) {
-			console.warn("Aucun viewer PDF trouvé");
-			return;
-		}
-
-		for (const viewer of pdfViewers) {
-			if (viewer?.eventBus) {
-				// Créer une fonction callback qu'on peut référencer
-				const callback = async (event: { pageNumber: number }) => {
-					this.pdfNoteController.onPageChanged(event.pageNumber);
-				};
-
-				// Enregistrer l'événement
-				viewer.eventBus.on("pagechanging", callback);
-
-				// Stocker la référence pour pouvoir la supprimer
-				this.currentPdfEventListeners.push({
-					viewer: viewer,
-					callback: callback,
-				});
-			}
-		}
-	}
-
-	private cleanupPdfEventListeners() {
-		for (const { viewer, callback } of this.currentPdfEventListeners) {
-			if (viewer?.eventBus && callback) {
-				try {
-					viewer.eventBus.off("pagechanging", callback);
-				} catch (error) {
-					console.warn("❌ Erreur lors de la suppression:", error);
-				}
-			}
-		}
-
-		this.currentPdfEventListeners = [];
-	}
-
-	findPdfViewer(): PdfViewer[] | null {
-		const leaves = this.app.workspace.getLeavesOfType("pdf");
-
-		const pdfViewers: PdfViewer[] = [];
-
-		for (const leaf of leaves) {
-			const view = leaf.view as any;
-
-			const viewer =
-				view?.previewMode?.renderer?.pdfViewer ||
-				view?.pdfViewer ||
-				view?.viewer?.child?.pdfViewer;
-
-			if (viewer?.eventBus) {
-				console.log("✅ pdfViewer trouvé dans leaf", leaf);
-				pdfViewers.push(viewer);
-			}
-		}
-
-		if (pdfViewers.length > 0) {
-			return pdfViewers;
-		}
-
-		console.warn("Aucun pdfViewer trouvé dans les feuilles markdown.");
-		return null;
 	}
 
 	async openPdfNotes() {
@@ -235,12 +78,15 @@ export default class PDFNotesPlugin extends Plugin {
 		}
 
 		const leaf = this.app.workspace.getRightLeaf(false);
+
 		if (leaf) {
 			await leaf.setViewState({
 				type: PDF_NOTE_VIEW,
 				active: true,
 			});
 			this.app.workspace.revealLeaf(leaf);
+			const noteRepo = container.get<NoteRepository>(TYPES.NoteRepository);
+			noteRepo.initialize();
 		}
 	}
 

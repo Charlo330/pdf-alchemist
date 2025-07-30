@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { App, TFile } from "obsidian";
+import { App } from "obsidian";
 import { NoteRepository } from "src/Repository/NoteRepository";
 import { TYPES } from "src/type/types";
 import { StateManager } from "src/StateManager";
@@ -70,7 +70,6 @@ export class PdfNotesService {
 	async createNoteFileIfNotExists(filepath: string): Promise<string> {
 
 		if (!(await this.app.vault.adapter.exists(filepath))) {
-			// TODO: Use settings.noteTemplate when available
 			await this.app.vault.create(filepath, "");
 		}
 
@@ -78,7 +77,6 @@ export class PdfNotesService {
 	}
 
 	async createFolderIfNotExists(folderPath: string): Promise<string> {
-		//let folder = this.app.vault.getFolderByPath(folderPath);
 		const normalizedPath = normalize(folderPath);
 		let folder = this.app.vault.getAbstractFileByPath(normalizedPath);
 		console.log("Creating folder if not exists:", folder);

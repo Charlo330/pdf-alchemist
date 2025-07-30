@@ -5,6 +5,7 @@ import { INoteRepository } from "src/type/INoteRepository";
 import type { ILinkRepository } from "src/type/ILinkRepository";
 import { StateManager } from "src/StateManager";
 
+const HEADER = "###### Page";
 @injectable()
 export class NoteRepository implements INoteRepository {
 	private notes: string[] = [];
@@ -55,7 +56,7 @@ export class NoteRepository implements INoteRepository {
 	parseMarkdownNotes(content: string): string[] {
 		const notes: string[] = [];
 		const matches = content.matchAll(
-			/## Page (\d+)\n([\s\S]*?)(?=\n## Page \d+|\n?$)/g
+			new RegExp(HEADER + " (\\d+)\\n([\\s\\S]*?)(?=\\n" + HEADER + " \\d+|\\n?$)", "g")
 		);
 
 		for (const match of matches) {
@@ -125,7 +126,7 @@ export class NoteRepository implements INoteRepository {
 	parseMarkdownContent(content: string): Map<number, string> {
 		const notes = new Map<number, string>();
 		const matches = content.matchAll(
-			/## Page (\d+)\n([\s\S]*?)(?=\n## Page \d+|\n?$)/g
+			new RegExp(HEADER + " (\\d+)\\n([\\s\\S]*?)(?=\\n" + HEADER + " \\d+|\\n?$)", "g")
 		);
 
 		for (const match of matches) {
@@ -140,7 +141,7 @@ export class NoteRepository implements INoteRepository {
 		return notes
 			.map((content, pageNumber) => {
 				if (content) {
-					return `## Page ${pageNumber}\n${content}\n`;
+					return `${HEADER} ${pageNumber}\n${content}\n`;
 				}
 				return "";
 			})

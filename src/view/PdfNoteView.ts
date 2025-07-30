@@ -240,6 +240,9 @@ export class PdfNoteView extends ItemView {
 			this.app.workspace.on("file-open", async (file) => {
 				console.log("File opened:", file);
 				await this.pdfNoteController.onPdfFileChanged(file);
+				this.lockBtnState = false;
+				setIcon(this.lockBtn, "lock-open");
+				this.lockBtn.style.color = "var(--green)";
 				if (file) {
 					this.setupChangePageEventListeners(file);
 				}
@@ -267,8 +270,6 @@ export class PdfNoteView extends ItemView {
 				view?.pdfViewer ||
 				view?.viewer?.child?.pdfViewer;
 
-			console.log("viewer", viewer);
-
 			const callback = async (event: { pageNumber: number }) => {
 				this.pdfNoteController.onPageChanged(event.pageNumber);
 				console.log("Page changed to:", event.pageNumber);
@@ -277,6 +278,8 @@ export class PdfNoteView extends ItemView {
 			viewer.eventBus.on("pagechanging", callback);
 
 			this.currentPdfViewer = { viewer: viewer, callback: callback };
+
+			this.pdfNoteController.onPageChanged(viewer.pdfViewer._currentPageNumber)
 		}
 	}
 
@@ -295,32 +298,6 @@ export class PdfNoteView extends ItemView {
 		}
 
 		this.currentPdfViewer = null;
-	}
-
-	findPdfViewer(): PdfViewer[] | null {
-		const leaves = this.app.workspace.getLeavesOfType("pdf");
-		console.log("leaf", leaves);
-
-		const pdfViewers: PdfViewer[] = [];
-
-		for (const leaf of leaves) {
-			const view = leaf.view as any;
-
-			const viewer =
-				view?.previewMode?.renderer?.pdfViewer ||
-				view?.pdfViewer ||
-				view?.viewer?.child?.pdfViewer;
-
-			if (viewer?.eventBus) {
-				pdfViewers.push(viewer);
-			}
-		}
-
-		if (pdfViewers.length > 0) {
-			return pdfViewers;
-		}
-
-		return null;
 	}
 
 	async onStateChange(state: AppState): Promise<void> {

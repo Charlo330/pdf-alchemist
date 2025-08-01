@@ -1,18 +1,18 @@
 import { App, Modal } from "obsidian";
-import { FilePickerModal } from "./FilePickerModal";
-import { PdfNotesController } from "src/controller/PdfNotesController";
+import { BrokenLinkModalController } from "src/controller/BrokenLinkModalController";
 
 export class BrokenLinkModal extends Modal {
 	private pdfLink: string | null = null;
-	private controller: PdfNotesController;
+	private brokenLinkModalController: BrokenLinkModalController;
+	private toggle: HTMLInputElement;
 
 	constructor(
 		app: App,
-		controller: PdfNotesController,
-		pdfLink: string | null
+		brokenLinkModalController: BrokenLinkModalController,
+		pdfLink: string | null,
 	) {
 		super(app);
-		this.controller = controller;
+		this.brokenLinkModalController = brokenLinkModalController;
 		this.pdfLink = pdfLink;
 	}
 
@@ -20,7 +20,7 @@ export class BrokenLinkModal extends Modal {
 		this.contentEl.createEl("h2", {
 			text: "No linked note found for this PDF",
 		});
-		const linkedNotePath = await this.controller.getLinkedNotePath(this.pdfLink || "");
+		const linkedNotePath = await this.brokenLinkModalController.getLinkedNotePath(this.pdfLink || "");
 		if (this.pdfLink) {
 			this.contentEl
 				.createEl("p", { text: "The linked note is : " })
@@ -40,21 +40,22 @@ export class BrokenLinkModal extends Modal {
 			text: "Page Mode",
 			cls: "file-picker-restore-selection-label",
 		});
-		const toggle = divCreate.createEl("input", {
+		this.toggle = divCreate.createEl("input", {
 			text: "Page mode",
 			type: "checkbox",
 			cls: "file-picker-restore-selection",
 		});
 
-		toggle.checked = this.controller.getSettings().isPageMode;
+		this.toggle.checked = this.brokenLinkModalController.isPageModeEnabled();
 
 		const createFileBtn = divCreate.createEl("button", {
 			text: "Create a new note",
 			cls: "btn-primary",
 		});
 		createFileBtn.onclick = async () => {
-			const isPageMode = toggle.checked;
-			const success = await this.controller.createNoteFileByCurrentPdfOpened(isPageMode);
+			const isPageMode = this.toggle.checked;
+			console.log("isPageMode", isPageMode);
+			const success = await this.brokenLinkModalController.createNoteFileByCurrentPdfOpened(isPageMode);
 
 			if (success) {
 				this.close();
@@ -67,7 +68,7 @@ export class BrokenLinkModal extends Modal {
 		});
 		btn.onclick = async () => {
 			if (this.pdfLink) {
-				new FilePickerModal(this.app, this.controller, this.pdfLink).open();
+				this.brokenLinkModalController.createFilePickerModalView(this.pdfLink)
 			}
 		};
 	}

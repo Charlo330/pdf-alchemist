@@ -1,12 +1,10 @@
 import { injectable, inject } from "inversify";
-import { App, Notice, TFile } from "obsidian";
+import { App, TFile } from "obsidian";
 import { NoteRepository } from "src/Repository/NoteRepository";
 import { TYPES } from "src/type/types";
 import { StateManager } from "src/StateManager";
 import { normalize } from "path";
 import { rootfilePath, folderPath, sameFolderPath, relativeFolderPath } from "src/utils/filePath";
-import type { ILinkRepository } from "src/type/ILinkRepository";
-import { JsonLinkRepository } from "src/Repository/JsonLinkRepository";
 import { FileLinkService } from "./FileLinkService";
 
 @injectable()

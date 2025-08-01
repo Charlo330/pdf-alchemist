@@ -13,7 +13,15 @@ export class FileLinkService {
 		@inject(TYPES.App) private app: App
 	) {}
 
-	async linkPdfToNote(pdfPath: string, notePath: string, isPageMode: boolean): Promise<void> {
+	async linkPdfToNote(pdfPath: string, notePath: string, isPageMode?: boolean): Promise<void> {
+		if (!isPageMode) {
+			isPageMode = this.stateManager.getSettings().isPageMode;
+		}
+
+		if (isPageMode === undefined) {
+			isPageMode = false;
+		}
+		
 		const link: PdfNoteLink = { pdfPath: pdfPath, notePath: notePath, isPageMode: isPageMode };
 		await this.linkRepo.save(link);
 	}

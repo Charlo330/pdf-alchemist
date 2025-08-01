@@ -1,9 +1,13 @@
 import { injectable, inject } from "inversify";
-import { App } from "obsidian";
+import { App, Notice, TFile } from "obsidian";
 import { NoteRepository } from "src/Repository/NoteRepository";
 import { TYPES } from "src/type/types";
 import { StateManager } from "src/StateManager";
 import { normalize } from "path";
+import { rootfilePath, folderPath, sameFolderPath, relativeFolderPath } from "src/utils/filePath";
+import type { ILinkRepository } from "src/type/ILinkRepository";
+import { JsonLinkRepository } from "src/Repository/JsonLinkRepository";
+import { FileLinkService } from "./FileLinkService";
 
 @injectable()
 export class PdfNotesService {
@@ -11,6 +15,7 @@ export class PdfNotesService {
 
 	constructor(
 		@inject(TYPES.NoteRepository) private noteRepo: NoteRepository,
+		@inject(TYPES.FileLinkService) private fileLinkService: FileLinkService,
 		@inject(TYPES.StateManager) private stateManager: StateManager,
 		@inject(TYPES.App) private app: App
 	) {}
@@ -75,13 +80,13 @@ export class PdfNotesService {
 		this.stateManager.setInSubNote(false);
 	}
 
-	async createNoteFileIfNotExists(filepath: string): Promise<string> {
+	async createFileIfNotExists(filepath: string): Promise<TFile | null> {
 
 		if (!(await this.app.vault.adapter.exists(filepath))) {
-			await this.app.vault.create(filepath, "");
+			return await this.app.vault.create(filepath, "");
 		}
 
-		return filepath;
+		return null;
 	}
 
 	async createFolderIfNotExists(folderPath: string): Promise<string> {
@@ -94,6 +99,59 @@ export class PdfNotesService {
 		}
 		return folder.path;
 	}
+
+		async createNoteByCurrentPdfOpened(isPageMode: boolean): Promise<TFile | null> {
+			const pdf = this.app.workspace.getActiveFile();
+			if (!pdf || pdf.extension !== "pdf") {
+				return null;
+			}
+			if (!pdf) {
+				return null;
+			}
+			if (!pdf.basename) {
+				return null;
+			}
+			return await this.createNoteFile(pdf.path, pdf.basename, isPageMode);
+		}
+	
+		async createNoteFile(
+			pdfPath: string,
+			basename: string,
+			isPageMode: boolean
+		): Promise<TFile | null> {
+			const folderLocation =
+				this.stateManager.getSettings().folderLocationPath;
+			let filePath = null;
+			switch (this.stateManager.getSettings().folderLocation) {
+				case "root":
+					filePath = rootfilePath(basename);
+					break;
+				case "folder":
+					filePath = folderPath(folderLocation || "", basename);
+					break;
+				case "sameFolder":
+					filePath = sameFolderPath(pdfPath || "", basename);
+					break;
+				case "relativeFolder":
+					filePath = relativeFolderPath(pdfPath || "", folderLocation);
+	
+					filePath = await this.createFolderIfNotExists(
+						filePath
+					);
+	
+					filePath = folderPath(pdfPath, basename);
+					break;
+				default:
+					filePath = sameFolderPath(pdfPath || "", basename);
+					break;
+			}
+	
+			const file = await this.createFileIfNotExists(
+				filePath
+			);
+			await this.fileLinkService.linkPdfToNote(pdfPath || "", filePath, isPageMode);
+			return file;
+		}
 
 	async createSubNoteFile(filePath: string): Promise<string> {
 		await this.app.vault.create(filePath, "");

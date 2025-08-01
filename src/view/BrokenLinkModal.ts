@@ -54,7 +54,7 @@ export class BrokenLinkModal extends Modal {
 		});
 		createFileBtn.onclick = async () => {
 			const isPageMode = toggle.checked;
-			const success = await this.controller.createNoteFileIfNotExists(isPageMode);
+			const success = await this.controller.createNoteFileByCurrentPdfOpened(isPageMode);
 
 			if (success) {
 				this.close();

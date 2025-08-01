@@ -9,7 +9,6 @@ import { PdfNotesController } from "src/controller/PdfNotesController";
 import { SubNotesController } from "src/controller/SubNotesController";
 import { injectable } from "inversify";
 import { FileLinkedModal } from "./FileLinkedModal";
-import { PdfViewer } from "src/type/PdfViewer";
 
 export const PDF_NOTE_VIEW = "pdf-note-view";
 

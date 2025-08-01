@@ -5,12 +5,6 @@ import { PdfNotesService } from "src/Service/PdfNotesService";
 import { StateManager } from "src/StateManager";
 import { BrokenLinkModal } from "src/view/BrokenLinkModal";
 import { FileLinkService } from "src/Service/FileLinkService";
-import {
-	relativeFolderPath,
-	rootfilePath,
-	sameFolderPath,
-	folderPath,
-} from "src/utils/filePath";
 
 @injectable()
 export class PdfNotesController {
@@ -36,7 +30,7 @@ export class PdfNotesController {
 		const settings = this.stateManager.getSettings();
 
 		if (!existingLink && settings.autoCreateNotes) {
-			await this.createNoteFile(
+			await this.pdfNotesService.createNoteFile(
 				file.path,
 				file.basename,
 				settings.isPageMode
@@ -53,62 +47,16 @@ export class PdfNotesController {
 		await this.pdfNotesService.onPdfChanged();
 	}
 
-	async createNoteFileIfNotExists(isPageMode: boolean): Promise<boolean> {
+	async createNoteFileByCurrentPdfOpened(isPageMode: boolean): Promise<boolean> {
 		const pdf = this.app.workspace.getActiveFile();
 		if (!pdf || pdf.extension !== "pdf") {
 			new Notice("No PDF file is currently open.");
 			return false;
 		}
-		if (!pdf) {
-			new Notice("No PDF file is currently open.");
-			return false;
-		}
-		if (!pdf.basename) {
-			new Notice("No PDF file is currently open.");
-			return false;
-		}
-		await this.createNoteFile(pdf.path, pdf.basename, isPageMode);
+		await this.pdfNotesService.createNoteFile(pdf.path, pdf.basename, isPageMode);
 		this.stateManager.setCurrentPdf(pdf);
 		this.stateManager.setIsPageMode(isPageMode);
 		return true;
-	}
-
-	private async createNoteFile(
-		pdfPath: string,
-		basename: string,
-		isPageMode: boolean
-	): Promise<void> {
-		const folderLocation =
-			this.stateManager.getSettings().folderLocationPath;
-		let filePath = null;
-		switch (this.stateManager.getSettings().folderLocation) {
-			case "root":
-				filePath = rootfilePath(basename);
-				break;
-			case "folder":
-				filePath = folderPath(folderLocation || "", basename);
-				break;
-			case "sameFolder":
-				filePath = sameFolderPath(pdfPath || "", basename);
-				break;
-			case "relativeFolder":
-				filePath = relativeFolderPath(pdfPath || "", folderLocation);
-
-				filePath = await this.pdfNotesService.createFolderIfNotExists(
-					filePath
-				);
-
-				filePath = folderPath(pdfPath, basename);
-				break;
-			default:
-				filePath = sameFolderPath(pdfPath || "", basename);
-				break;
-		}
-
-		filePath = await this.pdfNotesService.createNoteFileIfNotExists(
-			filePath
-		);
-		await this.linkPdfToNote(pdfPath || "", filePath, isPageMode);
 	}
 
 	async onPageChanged(page: number): Promise<void> {
@@ -169,7 +117,6 @@ export class PdfNotesController {
 				console.warn("Failed to get note for current page:", error);
 
 				new BrokenLinkModal(this.app, this, pdf.path).open();
-				// affiche la modal lien brisé
 				this.stateManager.setCurrentPdf(null);
 			}
 		} else if (pdf && !this.stateManager.getIsPageMode()) {

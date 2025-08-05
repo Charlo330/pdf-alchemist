@@ -1,6 +1,7 @@
 import { injectable } from "inversify";
 import { AppState } from "./type/AppState";
 import { TFile } from "obsidian";
+import { PluginSettings } from "./type/PluginSettings";
 
 @injectable()
 export class StateManager {
@@ -49,7 +50,7 @@ export class StateManager {
 		return this.state.settings;
 	}
 
-	setSettings(settings: any): void {
+	setSettings(settings: PluginSettings): void {
 		this.state.settings = settings;
 	}
 

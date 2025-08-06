@@ -74,12 +74,7 @@
 	gap: 10px;
 }
 
-.btn-primary {
-	cursor: pointer;
-}
-
 .navigation-button {
-	cursor: pointer;
 	color: var(--accent-h);
 	scale: 0.8;
 }
@@ -95,7 +90,6 @@
 }
 
 .page-lock-button {
-	cursor: pointer;
 	color: var(--accent-h);
 	scale: 0.8;
 }
@@ -199,7 +193,6 @@
     color: var(--text-normal);
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
-    cursor: pointer;
     transition: all 0.2s ease;
 }
 
@@ -285,7 +278,6 @@
     color: white;
     border: none;
     border-radius: 4px;
-    cursor: pointer;
 }
 
 
@@ -310,7 +302,6 @@
     color: var(--text-normal);
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
-    cursor: pointer;
     font-size: 12px;
 }
 
@@ -342,7 +333,6 @@
 
 .page-mode-toggle {
 	background: var(--color-red);
-	cursor: pointer;
 }
 
 /* Page Mode Toggle Styles */
@@ -368,7 +358,6 @@
     align-items: center;
     gap: 6px;
     margin: 0;
-    cursor: pointer;
 }
 
 .page-mode-icon {
@@ -388,7 +377,6 @@
 .page-mode-toggle-input {
     width: 20px;
     height: 20px;
-    cursor: pointer;
     accent-color: var(--interactive-accent);
 }
 

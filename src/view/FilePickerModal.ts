@@ -1,323 +1,499 @@
-import { App, Modal, Notice, setIcon } from "obsidian";
+import { App, Modal, setIcon } from "obsidian";
 import { FileTypeEnum, FolderSuggest } from "./FolderSuggest";
-import { PdfNotesController } from "src/controller/PdfNotesController";
+import { FilePickerModalController } from "src/controller/FilePickerModalController";
+import { MODAL_CONFIG } from "src/settings/ModalConfig";
+import { LinkItem } from "src/type/LinkItem";
 
-interface LinkItem {
-	pdfPath: string;
-	notePath: string;
+interface SearchState {
+    term: string;
+    currentPage: number;
 }
 
 export class FilePickerModal extends Modal {
-	private allLinks: LinkItem[] = [];
-	private filteredLinks: LinkItem[] = [];
-	private currentPage = 1;
-	private itemsPerPage = 10;
-	private searchTerm = "";
-	private linksContainer: HTMLElement;
-	private paginationContainer: HTMLElement;
-	private searchInput: HTMLInputElement;
+    private allLinks: LinkItem[] = [];
+    private searchState: SearchState = { term: "", currentPage: 1 };
+    
+    // UI Elements
+    private linksContainer: HTMLElement;
+    private paginationContainer: HTMLElement;
+    private searchInput: HTMLInputElement;
+    private pageModeToggle: HTMLInputElement;
+    private isLoading = false;
 
-	constructor(
-		app: App,
-		private controller: PdfNotesController,
-		private pdfPath: string | null = null
-	) {
-		super(app);
-	}
+    constructor(
+        app: App,
+        private controller: FilePickerModalController,
+        private pdfPath: string | null = null
+    ) {
+        super(app);
+    }
 
-	async onOpen() {
-		const { contentEl } = this;
-		contentEl.empty();
-		contentEl.addClass("file-picker-modal");
+    async onOpen() {
+        this.contentEl.empty();
+        this.contentEl.addClass(MODAL_CONFIG.CLASSES.MODAL);
 
-		// Load all existing links
-		await this.loadAllLinks();
-		this.createLinkForm();
-		this.createSearchBar();
-		this.createLinksSection();
-		this.createPagination();
+        await this.initializeData();
+        this.render();
+    }
 
-		this.filterAndDisplayLinks();
-	}
+    private async initializeData(): Promise<void> {
+        try {
+            this.allLinks = await this.controller.getAllLinks();
+        } catch (error) {
+            console.error("Failed to load links:", error);
+            this.allLinks = [];
+        }
+    }
 
-	private async loadAllLinks(): Promise<void> {
-		try {
-			// Read the JSON index file to get all links
-			const indexPath = "pdf-note-index.json";
-			if (await this.app.vault.adapter.exists(indexPath)) {
-				const content = await this.app.vault.adapter.read(indexPath);
-				const index = JSON.parse(content);
+    private render(): void {
+        if (this.isLoading) return;
+        
+        this.contentEl.empty();
+        this.contentEl.addClass(MODAL_CONFIG.CLASSES.MODAL);
+        
+        this.renderLinkForm();
+        this.renderSeparator();
+        this.renderSearchSection();
+        this.renderLinksSection();
+        this.renderPagination();
+        
+        this.updateDisplay();
+    }
 
-				this.allLinks = Object.entries(index).map(([pdfPath, properties]) => {
-					const props = properties as { notePath: string; isLinked: boolean };
-					return {
-						pdfPath,
-						notePath: props.notePath,
-						isLinked: props.isLinked
-					};
-				});
-			}
-		} catch (error) {
-			console.warn("Failed to load existing links:", error);
-			this.allLinks = [];
-		}
-	}
+    private renderLinkForm(): void {
+        const formSection = this.contentEl.createEl("div", {
+            cls: MODAL_CONFIG.CLASSES.FORM_SECTION,
+        });
 
-	private createLinkForm(): void {
-		const formSection = this.contentEl.createEl("div", { cls: "link-form-section" });
-		
-		formSection.createEl("h3", { text: "Create New Link", cls: "section-title" });
+        formSection.createEl("h3", {
+            text: MODAL_CONFIG.TEXTS.CREATE_NEW_LINK,
+            cls: MODAL_CONFIG.CLASSES.SECTION_TITLE,
+        });
 
-		const inputContainer = formSection.createDiv({
-			cls: "file-picker-input",
-		});
+        const inputContainer = formSection.createDiv({
+            cls: MODAL_CONFIG.CLASSES.INPUT_CONTAINER,
+        });
 
-		const pdfInput = inputContainer.createEl("input", {
-			type: "text",
-			placeholder: "PDF File Path",
-			cls: "file-picker-input-field",
-			value: this.pdfPath || "",
-		}) as HTMLInputElement;
+        const { pdfInput, mdInput } = this.createInputFields(inputContainer);
+        this.createPageModeToggle(inputContainer);
+        this.createSubmitButton(inputContainer, pdfInput, mdInput);
+    }
 
-		const mdInput = inputContainer.createEl("input", {
-			type: "text",
-			placeholder: "Markdown File Path",
-			cls: "file-picker-input-field",
-		}) as HTMLInputElement;
+    private createInputFields(container: HTMLElement) {
+        const pdfInput = container.createEl("input", {
+            type: "text",
+            placeholder: MODAL_CONFIG.TEXTS.PDF_PLACEHOLDER,
+            cls: MODAL_CONFIG.CLASSES.INPUT_FIELD,
+            value: this.pdfPath || "",
+        }) as HTMLInputElement;
 
-		if (this.pdfPath) {
-			pdfInput.readOnly = true;
-			mdInput.focus();
-		} else {
-			new FolderSuggest(this.app, pdfInput, FileTypeEnum.PDF);
-		}
+        const mdInput = container.createEl("input", {
+            type: "text",
+            placeholder: MODAL_CONFIG.TEXTS.MD_PLACEHOLDER,
+            cls: MODAL_CONFIG.CLASSES.INPUT_FIELD,
+        }) as HTMLInputElement;
 
-		new FolderSuggest(this.app, mdInput, FileTypeEnum.MARKDOWN);
+        this.setupInputBehavior(pdfInput, mdInput);
+        
+        return { pdfInput, mdInput };
+    }
 
-		const buttonContainer = inputContainer.createDiv({ cls: "button-container" });
-		const linkBtn = buttonContainer.createEl("button", { 
-			text: "Create Link",
-			cls: "mod-cta"
-		});
-		
-		linkBtn.onclick = async () => {
-			if (pdfInput.value && mdInput.value) {
-				await this.controller.linkPdfToNote(pdfInput.value, mdInput.value, this.controller.getSettings().isPageMode);
-				await this.loadAllLinks(); // Reload links
-				this.filterAndDisplayLinks(); // Refresh display
-				pdfInput.value = this.pdfPath || "";
-				mdInput.value = "";
-				new Notice("Link created successfully!");
-				this.close();
-			} else {
-				new Notice("Please fill in both PDF and Markdown file paths.");
-			}
-		};
+    private createPageModeToggle(container: HTMLElement): void {
+        const toggleContainer = container.createDiv({
+            cls: "page-mode-toggle-container",
+        });
 
-		// Add separator
-		this.contentEl.createEl("hr", { cls: "modal-separator" });
-	}
+        const toggleWrapper = toggleContainer.createDiv({
+            cls: "page-mode-toggle-wrapper",
+        });
 
-	private createSearchBar(): void {
-		const searchSection = this.contentEl.createEl("div", { cls: "search-section" });
-		searchSection.createEl("h3", { text: "Existing Links", cls: "section-title" });
+        const label = toggleWrapper.createEl("label", {
+            text: "Page Mode",
+            cls: "page-mode-toggle-label",
+        });
 
-		const searchContainer = searchSection.createDiv({ cls: "search-container" });
-		
-		this.searchInput = searchContainer.createEl("input", {
-			type: "text",
-			placeholder: "Search links by PDF or Note path...",
-			cls: "search-input"
-		}) as HTMLInputElement;
+        const toggleDiv = toggleWrapper.createDiv({
+            cls: "page-mode-toggle-input-wrapper",
+        });
 
-		this.searchInput.addEventListener("input", () => {
-			this.searchTerm = this.searchInput.value.toLowerCase();
-			this.currentPage = 1; // Reset to first page
-			this.filterAndDisplayLinks();
-		});
+        this.pageModeToggle = toggleDiv.createEl("input", {
+            type: "checkbox",
+            cls: "page-mode-toggle-input",
+        }) as HTMLInputElement;
 
-		const clearBtn = searchContainer.createEl("button", {
-			text: "Clear",
-			cls: "search-clear-btn"
-		});
+        // Set default value based on current settings or default to true
+        this.pageModeToggle.checked = this.controller.getDefaultPageMode();
 
-		clearBtn.onclick = () => {
-			this.searchInput.value = "";
-			this.searchTerm = "";
-			this.currentPage = 1;
-			this.filterAndDisplayLinks();
-		};
-	}
+        const description = toggleContainer.createDiv({
+            cls: "page-mode-description",
+        });
 
-	private createLinksSection(): void {
-		this.linksContainer = this.contentEl.createEl("div", { cls: "links-container" });
-	}
+        description.createEl("span", {
+            text: "Enable to create separate notes for each PDF page. Disable for a single note per PDF.",
+            cls: "page-mode-description-text",
+        });
 
-	private createPagination(): void {
-		this.paginationContainer = this.contentEl.createEl("div", { cls: "pagination-container" });
-	}
+        // Add icon to make it more visual
+        const iconSpan = label.createSpan({ cls: "page-mode-icon" });
+        
+        // Update icon based on toggle state
+        const updateIcon = () => {
+            setIcon(iconSpan, this.pageModeToggle.checked ? "file-stack" : "file");
+        };
+        
+        updateIcon();
+        
+        this.pageModeToggle.addEventListener("change", updateIcon);
+    }
 
-	private filterAndDisplayLinks(): void {
-		// Filter links based on search term
-		this.filteredLinks = this.allLinks.filter(link => 
-			link.pdfPath.toLowerCase().includes(this.searchTerm) ||
-			link.notePath.toLowerCase().includes(this.searchTerm)
-		);
+    private setupInputBehavior(pdfInput: HTMLInputElement, mdInput: HTMLInputElement): void {
+        if (this.pdfPath) {
+            pdfInput.readOnly = true;
+            mdInput.focus();
+        } else {
+            new FolderSuggest(this.app, pdfInput, FileTypeEnum.PDF);
+        }
+        new FolderSuggest(this.app, mdInput, FileTypeEnum.MARKDOWN);
 
-		this.displayCurrentPage();
-		this.updatePagination();
-	}
+        // Validation en temps réel
+        pdfInput.addEventListener("blur", () => this.validateInput(pdfInput));
+        mdInput.addEventListener("blur", () => this.validateInput(mdInput));
+    }
 
-	private displayCurrentPage(): void {
-		this.linksContainer.empty();
+    private validateInput(input: HTMLInputElement): void {
+        const isValid = this.controller.validateFilePath(input.value);
+        input.classList.toggle("input-error", !isValid);
+    }
 
-		const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-		const endIndex = Math.min(startIndex + this.itemsPerPage, this.filteredLinks.length);
-		const currentPageLinks = this.filteredLinks.slice(startIndex, endIndex);
+    private createSubmitButton(container: HTMLElement, pdfInput: HTMLInputElement, mdInput: HTMLInputElement): void {
+        const buttonContainer = container.createDiv({
+            cls: MODAL_CONFIG.CLASSES.BUTTON_CONTAINER,
+        });
+        
+        const linkBtn = buttonContainer.createEl("button", {
+            text: MODAL_CONFIG.TEXTS.CREATE_LINK,
+            cls: "mod-cta",
+        });
 
-		currentPageLinks.forEach((link, index) => {
-			this.createLinkItem(link, startIndex + index);
-		});
+        linkBtn.onclick = async () => {
+            linkBtn.disabled = true;
+            
+            try {
+                const success = await this.controller.createLink({
+                    pdfPath: pdfInput.value,
+                    notePath: mdInput.value,
+                    isPageMode: this.pageModeToggle.checked
+                });
 
-		// Show results info
-		const resultsInfo = this.linksContainer.createEl("div", { cls: "results-info" });
-		resultsInfo.textContent = `Showing ${startIndex + 1}-${endIndex} of ${this.filteredLinks.length} links`;
-	}
+                if (success) {
+                    await this.refreshData();
+                    this.resetForm(pdfInput, mdInput);
+                    this.close();
+                }
+            } finally {
+                linkBtn.disabled = false;
+                linkBtn.textContent = MODAL_CONFIG.TEXTS.CREATE_LINK;
+            }
+        };
+    }
 
-	private createLinkItem(link: LinkItem, index: number): void {
-		const linkItem = this.linksContainer.createEl("div", { cls: "link-item" });
+    private resetForm(pdfInput: HTMLInputElement, mdInput: HTMLInputElement): void {
+        pdfInput.value = this.pdfPath || "";
+        mdInput.value = "";
+        pdfInput.classList.remove("input-error");
+        mdInput.classList.remove("input-error");
+        // Reset toggle to default
+        this.pageModeToggle.checked = this.controller.getDefaultPageMode();
+    }
 
-		const linkInfo = linkItem.createEl("div", { cls: "link-info" });
-		
-		const pdfDiv = linkInfo.createEl("div", { cls: "link-path pdf-path" });
-		pdfDiv.createEl("span", { text: "PDF: ", cls: "path-label" });
-		pdfDiv.createEl("span", { text: link.pdfPath, cls: "path-value" });
+    private renderSeparator(): void {
+        this.contentEl.createEl("hr", { cls: "modal-separator" });
+    }
 
-		const arrowDiv = linkInfo.createEl("div", { cls: "link-arrow" });
-		arrowDiv.textContent = "→";
+    private renderSearchSection(): void {
+        const searchSection = this.contentEl.createEl("div", {
+            cls: MODAL_CONFIG.CLASSES.SEARCH_SECTION,
+        });
+        
+        searchSection.createEl("h3", {
+            text: MODAL_CONFIG.TEXTS.EXISTING_LINKS,
+            cls: MODAL_CONFIG.CLASSES.SECTION_TITLE,
+        });
 
-		const noteDiv = linkInfo.createEl("div", { cls: "link-path note-path" });
-		noteDiv.createEl("span", { text: "Note: ", cls: "path-label" });
-		noteDiv.createEl("span", { text: link.notePath, cls: "path-value" });
+        const searchContainer = searchSection.createDiv({
+            cls: MODAL_CONFIG.CLASSES.SEARCH_CONTAINER,
+        });
 
-		const actionsDiv = linkItem.createEl("div", { cls: "link-actions" });
-		
-		const deleteBtn = actionsDiv.createEl("button", {
-			text: "Delete",
-			cls: "mod-cta delete-btn"
-		});
+        this.createSearchInput(searchContainer);
+        this.createClearButton(searchContainer);
+    }
 
-		setIcon(deleteBtn, "trash");
+    private createSearchInput(container: HTMLElement): void {
+        this.searchInput = container.createEl("input", {
+            type: "text",
+            placeholder: MODAL_CONFIG.TEXTS.SEARCH_PLACEHOLDER,
+            cls: MODAL_CONFIG.CLASSES.SEARCH_INPUT,
+        }) as HTMLInputElement;
 
-		deleteBtn.onclick = async () => {
-			if (confirm(`Are you sure you want to delete the link between:\n${link.pdfPath}\n↓\n${link.notePath}`)) {
-				const file  = this.controller.getFile(link.pdfPath)
-				await this.controller.deleteLink(file);
-				await this.loadAllLinks();
-				this.filterAndDisplayLinks();
-			}
-		};
+        // Debounced search
+        let searchTimeout: NodeJS.Timeout;
+        this.searchInput.addEventListener("input", () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                this.searchState.term = this.searchInput.value.toLowerCase();
+                this.searchState.currentPage = 1;
+                this.updateDisplay();
+            }, 300);
+        });
+    }
 
-		// Add hover effects
-		linkItem.addEventListener("mouseenter", () => {
-			linkItem.addClass("link-item-hover");
-		});
+    private createClearButton(container: HTMLElement): void {
+        const clearBtn = container.createEl("button", {
+            text: MODAL_CONFIG.TEXTS.CLEAR,
+            cls: "search-clear-btn",
+        });
 
-		linkItem.addEventListener("mouseleave", () => {
-			linkItem.removeClass("link-item-hover");
-		});
-	}
+        clearBtn.onclick = () => {
+            this.searchInput.value = "";
+            this.searchState.term = "";
+            this.searchState.currentPage = 1;
+            this.updateDisplay();
+        };
+    }
 
-	private updatePagination(): void {
-		this.paginationContainer.empty();
+    private renderLinksSection(): void {
+        this.linksContainer = this.contentEl.createEl("div", {
+            cls: MODAL_CONFIG.CLASSES.LINKS_CONTAINER,
+        });
+    }
 
-		if (this.filteredLinks.length <= this.itemsPerPage) {
-			return; // No pagination needed
-		}
+    private renderPagination(): void {
+        this.paginationContainer = this.contentEl.createEl("div", {
+            cls: MODAL_CONFIG.CLASSES.PAGINATION_CONTAINER,
+        });
+    }
 
-		const totalPages = Math.ceil(this.filteredLinks.length / this.itemsPerPage);
-		const paginationDiv = this.paginationContainer.createEl("div", { cls: "pagination" });
+    private updateDisplay(): void {
+        const filteredLinks = this.controller.filterLinks(this.allLinks, this.searchState.term);
+        const paginatedData = this.controller.paginateLinks(
+            filteredLinks,
+            this.searchState.currentPage,
+            MODAL_CONFIG.PAGINATION.ITEMS_PER_PAGE
+        );
 
-		// Previous button
-		const prevBtn = paginationDiv.createEl("button", {
-			text: "Previous",
-			cls: this.currentPage === 1 ? "pagination-btn disabled" : "pagination-btn"
-		});
+        this.displayLinks(paginatedData);
+        this.displayPagination(paginatedData);
+    }
 
-		prevBtn.disabled = this.currentPage === 1;
-		prevBtn.onclick = () => {
-			if (this.currentPage > 1) {
-				this.currentPage--;
-				this.filterAndDisplayLinks();
-			}
-		};
+    private displayLinks(data: any): void {
+        this.linksContainer.empty();
 
-		// Page numbers
-		const startPage = Math.max(1, this.currentPage - 2);
-		const endPage = Math.min(totalPages, this.currentPage + 2);
+        if (data.items.length === 0) {
+            this.linksContainer.createEl("div", {
+                text: data.total === 0 ? "No links found." : "No links match your search.",
+                cls: "no-results"
+            });
+            return;
+        }
 
-		if (startPage > 1) {
-			const firstBtn = paginationDiv.createEl("button", {
-				text: "1",
-				cls: "pagination-btn page-number"
-			});
-			firstBtn.onclick = () => {
-				this.currentPage = 1;
-				this.filterAndDisplayLinks();
-			};
+        data.items.forEach((link: LinkItem) => {
+            this.createLinkItem(link);
+        });
 
-			if (startPage > 2) {
-				paginationDiv.createEl("span", { text: "...", cls: "pagination-dots" });
-			}
-		}
+        // Show results info
+        const resultsInfo = this.linksContainer.createEl("div", {
+            cls: "results-info",
+        });
+        const start = (data.page - 1) * MODAL_CONFIG.PAGINATION.ITEMS_PER_PAGE + 1;
+        const end = Math.min(data.page * MODAL_CONFIG.PAGINATION.ITEMS_PER_PAGE, data.total);
+        resultsInfo.textContent = `Showing ${start}-${end} of ${data.total} links`;
+    }
 
-		for (let i = startPage; i <= endPage; i++) {
-			const pageBtn = paginationDiv.createEl("button", {
-				text: i.toString(),
-				cls: i === this.currentPage ? "pagination-btn page-number active" : "pagination-btn page-number"
-			});
+    private createLinkItem(link: LinkItem): void {
+        const linkItem = this.linksContainer.createEl("div", {
+            cls: "link-item",
+        });
 
-			pageBtn.onclick = () => {
-				this.currentPage = i;
-				this.filterAndDisplayLinks();
-			};
-		}
+        this.createLinkInfo(linkItem, link);
+        this.createLinkActions(linkItem, link);
+        this.addLinkItemHoverEffects(linkItem);
+    }
 
-		if (endPage < totalPages) {
-			if (endPage < totalPages - 1) {
-				paginationDiv.createEl("span", { text: "...", cls: "pagination-dots" });
-			}
+    private createLinkInfo(container: HTMLElement, link: LinkItem): void {
+        const linkInfo = container.createEl("div", { cls: "link-info" });
 
-			const lastBtn = paginationDiv.createEl("button", {
-				text: totalPages.toString(),
-				cls: "pagination-btn page-number"
-			});
-			lastBtn.onclick = () => {
-				this.currentPage = totalPages;
-				this.filterAndDisplayLinks();
-			};
-		}
+        const pdfDiv = linkInfo.createEl("div", { cls: "link-path pdf-path" });
+        pdfDiv.createEl("span", { text: "PDF: ", cls: "path-label" });
+        pdfDiv.createEl("span", { text: link.pdfPath, cls: "path-value" });
+        
+        const arrowDiv = linkInfo.createEl("div", { cls: "link-arrow" });
+        arrowDiv.textContent = "→";
 
-		// Next button
-		const nextBtn = paginationDiv.createEl("button", {
-			text: "Next",
-			cls: this.currentPage === totalPages ? "pagination-btn disabled" : "pagination-btn"
-		});
+        const noteDiv = linkInfo.createEl("div", { cls: "link-path note-path" });
+        noteDiv.createEl("span", { text: "Note: ", cls: "path-label" });
+        noteDiv.createEl("span", { text: link.notePath, cls: "path-value" });
+        
+        const modeDiv = linkInfo.createEl("div", { cls: "link-mode" });
+        const modeIcon = modeDiv.createSpan({ cls: "mode-icon" });
+        setIcon(modeIcon, link.isPageMode ? "file-stack" : "file");
+        modeDiv.createSpan({ 
+            text: link.isPageMode ? "Page Mode" : "Single Note",
+            cls: "mode-text"
+        });
+    }
 
-		nextBtn.disabled = this.currentPage === totalPages;
-		nextBtn.onclick = () => {
-			if (this.currentPage < totalPages) {
-				this.currentPage++;
-				this.filterAndDisplayLinks();
-			}
-		};
+    private createLinkActions(container: HTMLElement, link: LinkItem): void {
+        const actionsDiv = container.createEl("div", { cls: "link-actions" });
 
-		// Page info
-		const pageInfo = this.paginationContainer.createEl("div", { cls: "page-info" });
-		pageInfo.textContent = `Page ${this.currentPage} of ${totalPages}`;
-	}
+        const deleteBtn = actionsDiv.createEl("button", {
+            text: MODAL_CONFIG.TEXTS.DELETE,
+            cls: "mod-cta delete-btn",
+        });
 
-	onClose() {
-		this.contentEl.empty();
-	}
+        setIcon(deleteBtn, "trash");
+
+        deleteBtn.onclick = async () => {
+            if (this.confirmDeletion(link)) {
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = "Deleting...";
+                
+                try {
+                    const success = await this.controller.deleteLink({ linkItem: link });
+                    if (success) {
+                        await this.refreshData();
+                    }
+                } finally {
+                    deleteBtn.disabled = false;
+                    deleteBtn.textContent = MODAL_CONFIG.TEXTS.DELETE;
+                    setIcon(deleteBtn, "trash");
+                }
+            }
+        };
+    }
+
+    private confirmDeletion(link: LinkItem): boolean {
+        const modeText = link.isPageMode ? "Page Mode" : "Single Note";
+        return confirm(
+            `Are you sure you want to delete the link between:\n${link.pdfPath}\n↓\n${link.notePath}\n(${modeText})`
+        );
+    }
+
+    private addLinkItemHoverEffects(linkItem: HTMLElement): void {
+        linkItem.addEventListener("mouseenter", () => {
+            linkItem.addClass("link-item-hover");
+        });
+
+        linkItem.addEventListener("mouseleave", () => {
+            linkItem.removeClass("link-item-hover");
+        });
+    }
+
+    private displayPagination(data: any): void {
+        this.paginationContainer.empty();
+
+        if (data.totalPages <= 1) {
+            return;
+        }
+
+        const paginationDiv = this.paginationContainer.createEl("div", {
+            cls: "pagination",
+        });
+
+        this.createPaginationButtons(paginationDiv, data);
+        this.createPageInfo(data);
+    }
+
+    private createPaginationButtons(container: HTMLElement, data: any): void {
+        this.createPreviousButton(container, data);
+        this.createPageNumberButtons(container, data);
+        this.createNextButton(container, data);
+    }
+
+    private createPreviousButton(container: HTMLElement, data: any): void {
+        const prevBtn = container.createEl("button", {
+            text: MODAL_CONFIG.TEXTS.PREVIOUS,
+            cls: data.page === 1 ? "pagination-btn disabled" : "pagination-btn",
+        });
+
+        prevBtn.disabled = data.page === 1;
+        prevBtn.onclick = () => {
+            if (data.page > 1) {
+                this.searchState.currentPage--;
+                this.updateDisplay();
+            }
+        };
+    }
+
+    private createPageNumberButtons(container: HTMLElement, data: any): void {
+        const startPage = Math.max(1, data.page - 2);
+        const endPage = Math.min(data.totalPages, data.page + 2);
+
+        if (startPage > 1) {
+            this.createPageButton(container, 1, data.page);
+            if (startPage > 2) {
+                container.createEl("span", { text: "...", cls: "pagination-dots" });
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            this.createPageButton(container, i, data.page);
+        }
+
+        if (endPage < data.totalPages) {
+            if (endPage < data.totalPages - 1) {
+                container.createEl("span", { text: "...", cls: "pagination-dots" });
+            }
+            this.createPageButton(container, data.totalPages, data.page);
+        }
+    }
+
+    private createPageButton(container: HTMLElement, pageNum: number, currentPage: number): void {
+        const pageBtn = container.createEl("button", {
+            text: pageNum.toString(),
+            cls: pageNum === currentPage
+                ? "pagination-btn page-number active"
+                : "pagination-btn page-number",
+        });
+
+        pageBtn.onclick = () => {
+            this.searchState.currentPage = pageNum;
+            this.updateDisplay();
+        };
+    }
+
+    private createNextButton(container: HTMLElement, data: any): void {
+        const nextBtn = container.createEl("button", {
+            text: MODAL_CONFIG.TEXTS.NEXT,
+            cls: data.page === data.totalPages ? "pagination-btn disabled" : "pagination-btn",
+        });
+
+        nextBtn.disabled = data.page === data.totalPages;
+        nextBtn.onclick = () => {
+            if (data.page < data.totalPages) {
+                this.searchState.currentPage++;
+                this.updateDisplay();
+            }
+        };
+    }
+
+    private createPageInfo(data: any): void {
+        const pageInfo = this.paginationContainer.createEl("div", {
+            cls: "page-info",
+        });
+        pageInfo.textContent = `Page ${data.page} of ${data.totalPages}`;
+    }
+
+    private async refreshData(): Promise<void> {
+        try {
+            this.allLinks = await this.controller.getAllLinks();
+            this.updateDisplay();
+        } catch (error) {
+            console.error("Failed to refresh data:", error);
+        }
+    }
+
+    onClose() {
+        this.contentEl.empty();
+    }
+	
 }

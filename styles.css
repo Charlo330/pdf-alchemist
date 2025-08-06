@@ -4,16 +4,14 @@
 	justify-content: space-around;
 	padding: 0%;
 	margin: 0%;
-	overflow: hidden !important;
 }
 
 .pdf-title-container {
 	display: flex;
 	gap: 5px;
 	align-items: end;
-	padding: 0%;
-	margin: 0%;
 	text-align: start;
+	word-wrap:break-word
 }
 
 .pdf-title-icon {
@@ -24,6 +22,9 @@
 	margin: 0;
 	padding: 0;
 	text-align: start;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;        /* <- Ajoute ceci ! */
 }
 
 .pdf-subtitle {
@@ -73,12 +74,7 @@
 	gap: 10px;
 }
 
-.btn-primary {
-	cursor: pointer;
-}
-
 .navigation-button {
-	cursor: pointer;
 	color: var(--accent-h);
 	scale: 0.8;
 }
@@ -94,7 +90,6 @@
 }
 
 .page-lock-button {
-	cursor: pointer;
 	color: var(--accent-h);
 	scale: 0.8;
 }
@@ -127,8 +122,10 @@
 }
 
 .modal:has(.file-picker-modal) {
-		width: 80%;
+	width: 80%;
 	height: 80%;
+	padding-top: 0%;
+	overflow-y:visible
 }
 
 .file-picker-modal .section-title {
@@ -196,13 +193,12 @@
     color: var(--text-normal);
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
-    cursor: pointer;
     transition: all 0.2s ease;
 }
 
 /* Links Container */
 .file-picker-modal .links-container {
-    min-height: 200px;
+    min-height: 400px;
     max-height: 400px;
     overflow-y: auto;
     border: 1px solid var(--background-modifier-border);
@@ -237,12 +233,11 @@
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
     background: var(--background-primary);
-    transition: all 0.2s ease;
 }
 
 .file-picker-modal .link-info {
     display: flex;
-    gap: 8px;
+	flex-direction: row;
 	align-items: center;
 }
 
@@ -283,8 +278,8 @@
     color: white;
     border: none;
     border-radius: 4px;
-    cursor: pointer;
 }
+
 
 /* Pagination */
 .file-picker-modal .pagination-container {
@@ -307,9 +302,7 @@
     color: var(--text-normal);
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
-    cursor: pointer;
     font-size: 12px;
-    transition: all 0.2s ease;
 }
 
 .file-picker-modal .pagination-btn:hover:not(.disabled) {
@@ -338,30 +331,121 @@
     color: var(--text-muted);
 }
 
-/* Responsive Design */
+.page-mode-toggle {
+	background: var(--color-red);
+}
+
+/* Page Mode Toggle Styles */
+.page-mode-toggle-container {
+    margin: 12px 0;
+    padding: 12px;
+    background: var(--background-secondary);
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.page-mode-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.page-mode-toggle-label {
+    font-weight: 500;
+    color: var(--text-normal);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+}
+
+.page-mode-icon {
+    display: inline-flex;
+    align-items: center;
+}
+
+.page-mode-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.page-mode-toggle-input-wrapper {
+    position: relative;
+}
+
+.page-mode-toggle-input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--interactive-accent);
+}
+
+.page-mode-description {
+    margin-top: 6px;
+}
+
+.page-mode-description-text {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
+/* Link Item Mode Indicator */
+.link-mode {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    background: var(--background-modifier-form-field);
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: var(--text-muted);
+}
+
+.mode-icon {
+    display: inline-flex;
+    align-items: center;
+}
+
+.mode-icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.mode-text {
+    font-weight: 500;
+}
+
+/* Update existing link-info styles to accommodate mode indicator */
+.link-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-grow: 1;
+}
+
+/* Ensure proper spacing for the mode indicator */
+.link-path {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.link-arrow {
+    margin: 0 8px;
+    color: var(--text-muted);
+    font-weight: bold;
+}
+
+/* Responsive adjustments */
 @media (max-width: 600px) {
-    .file-picker-modal .link-item {
+    .page-mode-toggle-wrapper {
         flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
+        align-items: flex-start;
+        gap: 8px;
     }
     
-    .file-picker-modal .link-actions {
-        margin-left: 0;
-        display: flex;
-        justify-content: center;
-    }
-    
-    .file-picker-modal .search-container {
-        flex-direction: column;
-    }
-    
-    .file-picker-modal .search-clear-btn {
-        align-self: stretch;
-    }
-    
-    .file-picker-modal .pagination {
-        flex-wrap: wrap;
-        justify-content: center;
+    .link-mode {
+        font-size: 0.8em;
+        padding: 3px 6px;
     }
 }

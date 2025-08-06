@@ -1,5 +1,4 @@
-import { configureContainer, container, PdfNoteViewFactory } from "./container";
-import { PdfNotesController } from "./controller/PdfNotesController";
+import { configureContainer, container, FilePickerModalFactory, PdfNoteViewFactory } from "./container";
 
 import { Plugin } from "obsidian";
 import { PluginSettings } from "./type/PluginSettings";
@@ -18,17 +17,12 @@ export default class PDFNotesPlugin extends Plugin {
 		isPageMode: true
 	};
 
-	private pdfNoteController: PdfNotesController;
 	private stateManager: StateManager;
 
 	private unsubscribe: (() => void) | null = null;
 
 	async onload() {
 		configureContainer(this.app);
-
-		this.pdfNoteController = container.get<PdfNotesController>(
-			TYPES.PdfNotesController
-		);
 
 		const pdfNoteViewFactory = container.get<PdfNoteViewFactory>(
 			TYPES.PdfNoteViewFactory
@@ -52,7 +46,7 @@ export default class PDFNotesPlugin extends Plugin {
 			id: "link-pdf-to-note",
 			name: "Link PDF to Note",
 			callback: () =>
-				new FilePickerModal(this.app, this.pdfNoteController).open(),
+				this.openFilePickerModal(),
 		});
 
 		this.addRibbonIcon("wand-sparkles", "Open PDF Notes", () => {
@@ -63,6 +57,12 @@ export default class PDFNotesPlugin extends Plugin {
 		this.app.workspace.onLayoutReady(async () => {
 			await this.initializeAfterLayout();
 		});
+	}
+
+	private  openFilePickerModal(path?: string): FilePickerModal {
+		const modal = container.get<FilePickerModalFactory>(TYPES.FilePickerModalFactory)(path);
+		modal.open();
+		return modal;
 	}
 
 	async initializeAfterLayout() {

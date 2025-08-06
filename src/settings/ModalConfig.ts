@@ -14,7 +14,18 @@ export const MODAL_CONFIG = {
         SEARCH_CONTAINER: "search-container",
         SEARCH_INPUT: "search-input",
         LINKS_CONTAINER: "links-container",
-        PAGINATION_CONTAINER: "pagination-container"
+        PAGINATION_CONTAINER: "pagination-container",
+        PAGE_MODE_TOGGLE: "page-mode-toggle-container",
+        PAGE_MODE_WRAPPER: "page-mode-toggle-wrapper",
+        PAGE_MODE_LABEL: "page-mode-toggle-label",
+        PAGE_MODE_INPUT_WRAPPER: "page-mode-toggle-input-wrapper",
+        PAGE_MODE_INPUT: "page-mode-toggle-input",
+        PAGE_MODE_DESCRIPTION: "page-mode-description",
+        PAGE_MODE_DESCRIPTION_TEXT: "page-mode-description-text",
+        PAGE_MODE_ICON: "page-mode-icon",
+        LINK_MODE: "link-mode",
+        MODE_ICON: "mode-icon",
+        MODE_TEXT: "mode-text"
     },
     TEXTS: {
         CREATE_NEW_LINK: "Create New Link",
@@ -26,6 +37,8 @@ export const MODAL_CONFIG = {
         CLEAR: "Clear",
         DELETE: "Delete",
         PREVIOUS: "Previous",
-        NEXT: "Next"
+        NEXT: "Next",
+        PAGE_MODE: "Page Mode",
+        PAGE_MODE_DESCRIPTION: "Enable to create separate notes for each PDF page. Disable for a single note per PDF."
     }
 } as const;

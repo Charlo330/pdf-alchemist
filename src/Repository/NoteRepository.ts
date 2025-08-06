@@ -43,9 +43,8 @@ export class NoteRepository implements INoteRepository {
 
 		const loadedNotes = this.parseMarkdownNotes(content);
 
-		// Initialize notes array properly
 		this.notes = [];
-		// Copy loaded notes to the array
+
 		for (let i = 0; i < loadedNotes.length; i++) {
 			if (loadedNotes[i]) {
 				this.notes[i] = loadedNotes[i];

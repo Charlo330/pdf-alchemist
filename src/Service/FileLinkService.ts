@@ -16,7 +16,7 @@ export class FileLinkService {
 	) {}
 
 	async linkPdfToNote(pdfPath: string, notePath: string, isPageMode?: boolean): Promise<void> {
-		if (!isPageMode) {
+		if (isPageMode == null) {
 			isPageMode = this.stateManager.getSettings().isPageMode;
 		}
 
@@ -30,7 +30,7 @@ export class FileLinkService {
 
 	async getLinkedNoteFile(): Promise<TFile | null> {
 		const pdfPath = this.stateManager.getCurrentPdf()?.path;
-		console.log("pdfPath", pdfPath);
+		
 		const link = await this.linkRepo.findByPdf(pdfPath ? pdfPath : "");
 
 		const filepath = this.app.vault.getFileByPath(link?.notePath || "");

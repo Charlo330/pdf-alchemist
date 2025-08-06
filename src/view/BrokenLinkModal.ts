@@ -54,7 +54,6 @@ export class BrokenLinkModal extends Modal {
 		});
 		createFileBtn.onclick = async () => {
 			const isPageMode = this.toggle.checked;
-			console.log("isPageMode", isPageMode);
 			const success = await this.brokenLinkModalController.createNoteFileByCurrentPdfOpened(isPageMode);
 
 			if (success) {
@@ -69,6 +68,7 @@ export class BrokenLinkModal extends Modal {
 		btn.onclick = async () => {
 			if (this.pdfLink) {
 				this.brokenLinkModalController.createFilePickerModalView(this.pdfLink)
+				this.close();
 			}
 		};
 	}

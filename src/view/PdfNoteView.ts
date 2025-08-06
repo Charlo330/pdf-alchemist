@@ -39,7 +39,7 @@ export class PdfNoteView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return "📝 PDF Notes";
+		return "PDF Notes";
 	}
 
 	getIcon(): string {

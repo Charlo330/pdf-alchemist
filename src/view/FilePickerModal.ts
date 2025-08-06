@@ -17,6 +17,7 @@ export class FilePickerModal extends Modal {
     private linksContainer: HTMLElement;
     private paginationContainer: HTMLElement;
     private searchInput: HTMLInputElement;
+    private pageModeToggle: HTMLInputElement;
     private isLoading = false;
 
     constructor(
@@ -36,24 +37,11 @@ export class FilePickerModal extends Modal {
     }
 
     private async initializeData(): Promise<void> {
-        this.showLoading(true);
         try {
             this.allLinks = await this.controller.getAllLinks();
         } catch (error) {
             console.error("Failed to load links:", error);
             this.allLinks = [];
-        } finally {
-            this.showLoading(false);
-        }
-    }
-
-    private showLoading(show: boolean): void {
-        this.isLoading = show;
-        if (show) {
-            this.contentEl.createEl("div", {
-                text: "Loading...",
-                cls: "loading-indicator"
-            });
         }
     }
 
@@ -87,6 +75,7 @@ export class FilePickerModal extends Modal {
         });
 
         const { pdfInput, mdInput } = this.createInputFields(inputContainer);
+        this.createPageModeToggle(inputContainer);
         this.createSubmitButton(inputContainer, pdfInput, mdInput);
     }
 
@@ -107,6 +96,54 @@ export class FilePickerModal extends Modal {
         this.setupInputBehavior(pdfInput, mdInput);
         
         return { pdfInput, mdInput };
+    }
+
+    private createPageModeToggle(container: HTMLElement): void {
+        const toggleContainer = container.createDiv({
+            cls: "page-mode-toggle-container",
+        });
+
+        const toggleWrapper = toggleContainer.createDiv({
+            cls: "page-mode-toggle-wrapper",
+        });
+
+        const label = toggleWrapper.createEl("label", {
+            text: "Page Mode",
+            cls: "page-mode-toggle-label",
+        });
+
+        const toggleDiv = toggleWrapper.createDiv({
+            cls: "page-mode-toggle-input-wrapper",
+        });
+
+        this.pageModeToggle = toggleDiv.createEl("input", {
+            type: "checkbox",
+            cls: "page-mode-toggle-input",
+        }) as HTMLInputElement;
+
+        // Set default value based on current settings or default to true
+        this.pageModeToggle.checked = this.controller.getDefaultPageMode();
+
+        const description = toggleContainer.createDiv({
+            cls: "page-mode-description",
+        });
+
+        description.createEl("span", {
+            text: "Enable to create separate notes for each PDF page. Disable for a single note per PDF.",
+            cls: "page-mode-description-text",
+        });
+
+        // Add icon to make it more visual
+        const iconSpan = label.createSpan({ cls: "page-mode-icon" });
+        
+        // Update icon based on toggle state
+        const updateIcon = () => {
+            setIcon(iconSpan, this.pageModeToggle.checked ? "file-stack" : "file");
+        };
+        
+        updateIcon();
+        
+        this.pageModeToggle.addEventListener("change", updateIcon);
     }
 
     private setupInputBehavior(pdfInput: HTMLInputElement, mdInput: HTMLInputElement): void {
@@ -140,12 +177,12 @@ export class FilePickerModal extends Modal {
 
         linkBtn.onclick = async () => {
             linkBtn.disabled = true;
-            linkBtn.textContent = "Creating...";
             
             try {
                 const success = await this.controller.createLink({
                     pdfPath: pdfInput.value,
-                    notePath: mdInput.value
+                    notePath: mdInput.value,
+                    isPageMode: this.pageModeToggle.checked
                 });
 
                 if (success) {
@@ -165,6 +202,8 @@ export class FilePickerModal extends Modal {
         mdInput.value = "";
         pdfInput.classList.remove("input-error");
         mdInput.classList.remove("input-error");
+        // Reset toggle to default
+        this.pageModeToggle.checked = this.controller.getDefaultPageMode();
     }
 
     private renderSeparator(): void {
@@ -293,6 +332,15 @@ export class FilePickerModal extends Modal {
         const noteDiv = linkInfo.createEl("div", { cls: "link-path note-path" });
         noteDiv.createEl("span", { text: "Note: ", cls: "path-label" });
         noteDiv.createEl("span", { text: link.notePath, cls: "path-value" });
+        
+        // Add page mode indicator
+        const modeDiv = linkInfo.createEl("div", { cls: "link-mode" });
+        const modeIcon = modeDiv.createSpan({ cls: "mode-icon" });
+        setIcon(modeIcon, link.isPageMode ? "file-stack" : "file");
+        modeDiv.createSpan({ 
+            text: link.isPageMode ? "Page Mode" : "Single Note",
+            cls: "mode-text"
+        });
     }
 
     private createLinkActions(container: HTMLElement, link: LinkItem): void {
@@ -325,8 +373,9 @@ export class FilePickerModal extends Modal {
     }
 
     private confirmDeletion(link: LinkItem): boolean {
+        const modeText = link.isPageMode ? "Page Mode" : "Single Note";
         return confirm(
-            `Are you sure you want to delete the link between:\n${link.pdfPath}\n↓\n${link.notePath}`
+            `Are you sure you want to delete the link between:\n${link.pdfPath}\n↓\n${link.notePath}\n(${modeText})`
         );
     }
 
@@ -436,18 +485,16 @@ export class FilePickerModal extends Modal {
     }
 
     private async refreshData(): Promise<void> {
-        this.showLoading(true);
         try {
             this.allLinks = await this.controller.getAllLinks();
             this.updateDisplay();
         } catch (error) {
             console.error("Failed to refresh data:", error);
-        } finally {
-            this.showLoading(false);
         }
     }
 
     onClose() {
         this.contentEl.empty();
     }
+	
 }

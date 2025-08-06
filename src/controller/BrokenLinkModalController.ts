@@ -36,8 +36,8 @@ export class BrokenLinkModalController {
 			pdf.basename,
 			isPageMode
 		);
-		this.stateManager.setCurrentPdf(pdf);
 		this.stateManager.setIsPageMode(isPageMode);
+		this.stateManager.setCurrentPdf(pdf);
 		return true;
 	}
 

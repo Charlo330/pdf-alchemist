@@ -338,6 +338,11 @@
     color: var(--text-muted);
 }
 
+.page-mode-toggle {
+	background: var(--color-red);
+	cursor: pointer;
+}
+
 /* Page Mode Toggle Styles */
 .page-mode-toggle-container {
     margin: 12px 0;

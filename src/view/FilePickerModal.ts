@@ -333,7 +333,6 @@ export class FilePickerModal extends Modal {
         noteDiv.createEl("span", { text: "Note: ", cls: "path-label" });
         noteDiv.createEl("span", { text: link.notePath, cls: "path-value" });
         
-        // Add page mode indicator
         const modeDiv = linkInfo.createEl("div", { cls: "link-mode" });
         const modeIcon = modeDiv.createSpan({ cls: "mode-icon" });
         setIcon(modeIcon, link.isPageMode ? "file-stack" : "file");

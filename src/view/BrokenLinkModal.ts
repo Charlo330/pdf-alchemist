@@ -1,15 +1,15 @@
-import { App, Modal } from "obsidian";
+import { App, Modal, setIcon } from "obsidian";
 import { BrokenLinkModalController } from "src/controller/BrokenLinkModalController";
 
 export class BrokenLinkModal extends Modal {
 	private pdfLink: string | null = null;
 	private brokenLinkModalController: BrokenLinkModalController;
-	private toggle: HTMLInputElement;
+	private isPageMode: boolean;
 
 	constructor(
 		app: App,
 		brokenLinkModalController: BrokenLinkModalController,
-		pdfLink: string | null,
+		pdfLink: string | null
 	) {
 		super(app);
 		this.brokenLinkModalController = brokenLinkModalController;
@@ -20,7 +20,10 @@ export class BrokenLinkModal extends Modal {
 		this.contentEl.createEl("h2", {
 			text: "No linked note found for this PDF",
 		});
-		const linkedNotePath = await this.brokenLinkModalController.getLinkedNotePath(this.pdfLink || "");
+		const linkedNotePath =
+			await this.brokenLinkModalController.getLinkedNotePath(
+				this.pdfLink || ""
+			);
 		if (this.pdfLink) {
 			this.contentEl
 				.createEl("p", { text: "The linked note is : " })
@@ -36,25 +39,31 @@ export class BrokenLinkModal extends Modal {
 			cls: "modal-btn-create",
 		});
 		// create toggle
-		divCreate.createEl("label", {
-			text: "Page Mode",
-			cls: "file-picker-restore-selection-label",
-		});
-		this.toggle = divCreate.createEl("input", {
-			text: "Page mode",
-			type: "checkbox",
-			cls: "file-picker-restore-selection",
+
+		const modeDiv = divCreate.createEl("div");
+
+		const modeButton = modeDiv.createEl("button", {
+			cls: "page-mode-toggle mod-cta",
 		});
 
-		this.toggle.checked = this.brokenLinkModalController.isPageModeEnabled();
+		this.isPageMode = this.brokenLinkModalController.isPageModeEnabled();
+		setIcon(modeButton, this.isPageMode ? "file-stack" : "file");
+
+		modeButton.onclick = () => {
+			this.isPageMode = !this.isPageMode;
+			setIcon(modeButton, this.isPageMode ? "file-stack" : "file");
+		};
 
 		const createFileBtn = divCreate.createEl("button", {
 			text: "Create a new note",
 			cls: "btn-primary",
 		});
 		createFileBtn.onclick = async () => {
-			const isPageMode = this.toggle.checked;
-			const success = await this.brokenLinkModalController.createNoteFileByCurrentPdfOpened(isPageMode);
+			const isPageMode = this.isPageMode;
+			const success =
+				await this.brokenLinkModalController.createNoteFileByCurrentPdfOpened(
+					isPageMode
+				);
 
 			if (success) {
 				this.close();
@@ -67,7 +76,9 @@ export class BrokenLinkModal extends Modal {
 		});
 		btn.onclick = async () => {
 			if (this.pdfLink) {
-				this.brokenLinkModalController.createFilePickerModalView(this.pdfLink)
+				this.brokenLinkModalController.createFilePickerModalView(
+					this.pdfLink
+				);
 				this.close();
 			}
 		};

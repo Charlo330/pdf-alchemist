@@ -137,7 +137,7 @@ export class PdfNotesService {
 						filePath
 					);
 	
-					filePath = folderPath(pdfPath, basename);
+					filePath = folderPath(filePath, basename);
 					break;
 				default:
 					filePath = sameFolderPath(pdfPath || "", basename);

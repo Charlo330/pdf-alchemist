@@ -128,8 +128,10 @@
 }
 
 .modal:has(.file-picker-modal) {
-		width: 80%;
+	width: 80%;
 	height: 80%;
+	padding-top: 0%;
+	overflow-y:visible
 }
 
 .file-picker-modal .section-title {
@@ -203,7 +205,7 @@
 
 /* Links Container */
 .file-picker-modal .links-container {
-    min-height: 200px;
+    min-height: 400px;
     max-height: 400px;
     overflow-y: auto;
     border: 1px solid var(--background-modifier-border);
@@ -286,6 +288,7 @@
     cursor: pointer;
 }
 
+
 /* Pagination */
 .file-picker-modal .pagination-container {
     margin-top: 10px;
@@ -309,7 +312,6 @@
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
-    transition: all 0.2s ease;
 }
 
 .file-picker-modal .pagination-btn:hover:not(.disabled) {

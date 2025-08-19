@@ -147,7 +147,7 @@ export class PdfNoteView extends ItemView {
 					new Notice("You cannot open a link alias. Give it its real name.");
 					return;
 				}
-				
+
 				console.log("target", target)
 
 				if (target.textContent) {
@@ -286,7 +286,7 @@ export class PdfNoteView extends ItemView {
 	}
 
 	private displayEmptyView(): void {
-		this.titleElement.setText("No PDF opened");
+		this.titleElement.setText("PDF Alchemist 🪄");
 		this.pageElement.setText("");
 		this.editor.hide();
 		this.editor.set("");

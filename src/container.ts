@@ -7,7 +7,6 @@ import { NoteRepository } from "./Repository/NoteRepository";
 import { JsonLinkRepository } from "./Repository/JsonLinkRepository";
 import { App, WorkspaceLeaf } from "obsidian";
 import { TYPES } from "./type/types";
-import { SubNotesController } from "./controller/SubNotesController";
 import { PdfNoteView } from "./view/PdfNoteView";
 import { FileLinkService } from "./Service/FileLinkService";
 import { PdfNoteViewController } from "./controller/PdfNoteViewController";
@@ -40,10 +39,6 @@ export function configureContainer(app: App): void {
 		.to(PdfNotesService)
 		.inSingletonScope();
 	container
-		.bind<SubNotesController>(TYPES.SubNotesController)
-		.to(SubNotesController)
-		.inSingletonScope();
-	container
 		.bind<FileLinkService>(TYPES.FileLinkService)
 		.to(FileLinkService)
 		.inSingletonScope();
@@ -69,9 +64,6 @@ export function configureContainer(app: App): void {
 		.bind<PdfNoteViewFactory>(TYPES.PdfNoteViewFactory)
 		.toFactory(() => {
 			return (leaf: WorkspaceLeaf) => {
-				const subController = container.get<SubNotesController>(
-					TYPES.SubNotesController
-				);
 				const stateManager = container.get<StateManager>(
 					TYPES.StateManager
 				);
@@ -82,7 +74,6 @@ export function configureContainer(app: App): void {
 
 				return new PdfNoteView(
 					leaf,
-					subController,
 					stateManager,
 					pdfNoteViewController
 				);

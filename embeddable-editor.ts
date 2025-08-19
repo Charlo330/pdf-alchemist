@@ -238,6 +238,7 @@ export class EmbeddableMarkdownEditor {
 		// Set up the editor relationship for commands to work
 		if (this.owner) {
 			this.owner.editMode = this;
+			this.owner.syncScroll = () => {};
 			this.owner.editor = this.editor.editor;
 		}
 

@@ -1,22 +1,27 @@
 import { inject, injectable } from "inversify";
-import { App, Notice, setIcon, TAbstractFile, TFile } from "obsidian";
+import {
+	App,
+	normalizePath,
+	Notice,
+	setIcon,
+	TAbstractFile,
+	TFile,
+} from "obsidian";
 import { FileLinkService } from "src/Service/FileLinkService";
 import { PdfEventService } from "src/Service/PdfEventService";
 import { PdfNotesService } from "src/Service/PdfNotesService";
 import { StateManager } from "src/StateManager";
 import { TYPES } from "src/type/types";
-import { BrokenLinkModalController } from "./BrokenLinkModalController";
 import { BrokenLinkModalFactory, container } from "src/container";
 
 @injectable()
 export class PdfNoteViewController {
 	constructor(
+		@inject(TYPES.App) private app: App,
 		@inject(TYPES.StateManager) private stateManager: StateManager,
 		@inject(TYPES.PdfEventService) private pdfEventService: PdfEventService,
 		@inject(TYPES.FileLinkService) private fileLinkService: FileLinkService,
-		@inject(TYPES.PdfNotesService) private pdfNotesService: PdfNotesService,
-		@inject(TYPES.App) private app: App,
-		@inject(TYPES.BrokenLinkModalController) private brokenLinkModalController: BrokenLinkModalController,
+		@inject(TYPES.PdfNotesService) private pdfNotesService: PdfNotesService
 	) {}
 
 	getPageModeIcon(): string {
@@ -92,9 +97,9 @@ export class PdfNoteViewController {
 			);
 		} else if (!existingLink && !settings.autoCreateNotes) {
 			// Show a modal to inform the user
-			const modal = container.get<BrokenLinkModalFactory>(TYPES.BrokenLinkModalFactory)(
-				file.path
-			);
+			const modal = container.get<BrokenLinkModalFactory>(
+				TYPES.BrokenLinkModalFactory
+			)(file.path);
 			modal.open();
 			this.stateManager.setCurrentPdf(null);
 			await this.pdfNotesService.onPdfChanged();
@@ -216,5 +221,68 @@ export class PdfNoteViewController {
 			);
 		}
 		return "";
+	}
+
+	mainNote(): void {
+		this.pdfNotesService.mainNote();
+	}
+	
+	previousSubNote(): void {
+		this.pdfNotesService.previousSubNote();
+	}
+
+	getSubNoteFileName(): string | null {
+		const subNotePath = this.stateManager.peekNavigationStack();
+		if (!subNotePath) {
+			return null;
+		}
+		return subNotePath.split("/").pop()?.split(".")[0] || null;
+	}
+
+	async getSubNoteContent(): Promise<string> {
+		return await this.pdfNotesService.getSubNoteContent();
+	}
+
+	async openSubNote(fileName: string): Promise<void> {
+		let subNotePath = await this.app.metadataCache.getFirstLinkpathDest(
+			fileName,
+			""
+		)?.path;
+		console.log("subNotePath", subNotePath);
+
+		if (!subNotePath) {
+			const linkedNote = await this.fileLinkService.getLinkedNoteFile();
+
+			const folderPath = linkedNote?.path.substring(
+				0,
+				linkedNote.path.lastIndexOf("/")
+			);
+
+			const newFilePath = normalizePath(`${folderPath}/${fileName}.md`);
+
+			subNotePath = await this.pdfNotesService.createSubNoteFile(
+				newFilePath
+			);
+		}
+
+		if (subNotePath) {
+			this.stateManager.pushToNavigationStack(subNotePath);
+		} else {
+			new Notice(`Failed to create sub-note for: ${fileName}`);
+		}
+	}
+
+	async saveSubNote(content: string): Promise<void> {
+		const state = this.stateManager.getState();
+		if (!state.isInSubNote) {
+			new Notice("You are not in a sub-note.");
+			return;
+		}
+		const subNotePath = this.stateManager.peekNavigationStack();
+		if (!subNotePath) {
+			new Notice("No sub-note path found.");
+			return;
+		}
+		await this.pdfNotesService.saveSubNote(content);
 	}
 }

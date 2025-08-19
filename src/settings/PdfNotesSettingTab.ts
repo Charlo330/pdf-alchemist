@@ -65,7 +65,7 @@ export class PdfNotesSettingTab extends PluginSettingTab {
 		console.log("div", value);
 		switch (value) {
 			case "root":
-				this.plugin.settings.folderLocationPath = "root";
+				this.plugin.settings.folderLocationPath = null;
 				this.plugin.saveSettings();
 				break;
 			case "folder":

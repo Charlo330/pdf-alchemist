@@ -1,11 +1,10 @@
-import { ItemView, setIcon, TFile, WorkspaceLeaf } from "obsidian";
+import { ItemView, Notice, setIcon, TFile, WorkspaceLeaf } from "obsidian";
 import {
 	createEmbeddableMarkdownEditor,
 	EmbeddableMarkdownEditor,
 } from "embeddable-editor";
 import { AppState } from "src/type/AppState";
 import { StateManager } from "src/StateManager";
-import { SubNotesController } from "src/controller/SubNotesController";
 import { injectable } from "inversify";
 import { FileLinkedModal } from "./FileLinkedModal";
 import { PdfNoteViewController } from "src/controller/PdfNoteViewController";
@@ -27,7 +26,6 @@ export class PdfNoteView extends ItemView {
 
 	constructor(
 		leaf: WorkspaceLeaf,
-		private subNoteController: SubNotesController,
 		private stateManager: StateManager,
 		private pdfNoteViewController: PdfNoteViewController
 	) {
@@ -94,7 +92,7 @@ export class PdfNoteView extends ItemView {
 		});
 
 		backButton.onclick = () => {
-			this.subNoteController.previousSubNote();
+			this.pdfNoteViewController.previousSubNote();
 		};
 
 		const homeButton = this.buttonDiv.createEl("button", {
@@ -103,7 +101,7 @@ export class PdfNoteView extends ItemView {
 		});
 
 		homeButton.onclick = () => {
-			this.subNoteController.mainNote();
+			this.pdfNoteViewController.mainNote();
 		};
 
 		setIcon(backButton, "chevron-left");
@@ -137,7 +135,7 @@ export class PdfNoteView extends ItemView {
 			placeholder: "Type your notes here...",
 			onChange: () => {
 				if (this.stateManager.getState().isInSubNote) {
-					this.subNoteController.saveSubNote(this.editor.value);
+					this.pdfNoteViewController.saveSubNote(this.editor.value);
 				} else {
 					this.pdfNoteViewController.saveNote(this.editor.value);
 				}
@@ -145,8 +143,15 @@ export class PdfNoteView extends ItemView {
 			onClickLink: async (event) => {
 				const target = event.target as HTMLAnchorElement;
 
+				if (target.parentElement?.hasClass("cm-link-alias")) {
+					new Notice("You cannot open a link alias. Give it its real name.");
+					return;
+				}
+				
+				console.log("target", target)
+
 				if (target.textContent) {
-					await this.subNoteController.openSubNote(
+					await this.pdfNoteViewController.openSubNote(
 						target.textContent
 					);
 				}
@@ -154,7 +159,6 @@ export class PdfNoteView extends ItemView {
 			cls: "pdf-editor",
 		});
 
-		// S'abonner aux changements d'état
 		this.unsubscribe = this.stateManager.subscribe(
 			this.onStateChange.bind(this)
 		);
@@ -250,13 +254,13 @@ export class PdfNoteView extends ItemView {
 	}
 	private async displaySubNoteView(): Promise<void> {
 		this.subTitleElement.setText(
-			this.subNoteController.getSubNoteFileName() || "Sub Note"
+			this.pdfNoteViewController.getSubNoteFileName() || "Sub Note"
 		);
 		this.emptyElement.style.display = "none";
 		this.subTitleElement.parentElement?.toggleVisibility(true);
 		this.lockBtn.hide();
 
-		const subNoteContent = await this.subNoteController.getSubNoteContent();
+		const subNoteContent = await this.pdfNoteViewController.getSubNoteContent();
 		this.editor.show();
 		this.editor.set(subNoteContent);
 	}

@@ -66,7 +66,6 @@ export default class PDFNotesPlugin extends Plugin {
 	}
 
 	async initializeAfterLayout() {
-		// Onglet de paramètres
 		this.addSettingTab(new PdfNotesSettingTab(this.app, this));
 	}
 

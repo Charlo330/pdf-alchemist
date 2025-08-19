@@ -18,7 +18,7 @@ import { FilePickerModal } from "./view/FilePickerModal";
 
 export const container = new Container();
 
-// Type pour la factory
+// Type for the factory
 export type PdfNoteViewFactory = (leaf: WorkspaceLeaf) => PdfNoteView;
 export type FilePickerModalFactory = (path: string | undefined) => FilePickerModal;
 export type BrokenLinkModalFactory = (path: string) => BrokenLinkModal;
@@ -59,7 +59,7 @@ export function configureContainer(app: App): void {
 		.to(FilePickerModalController)
 		.inSingletonScope();
 
-	// Factory pour PdfNoteView
+	// Factory for the PdfNoteView
 	container
 		.bind<PdfNoteViewFactory>(TYPES.PdfNoteViewFactory)
 		.toFactory(() => {
@@ -80,7 +80,7 @@ export function configureContainer(app: App): void {
 			};
 		});
 
-	// Factory pour FilePickerModalController
+	// Factory for the FilePickerModalController
 	container
 		.bind<FilePickerModalFactory>(TYPES.FilePickerModalFactory)
 		.toFactory(() => {
@@ -93,7 +93,7 @@ export function configureContainer(app: App): void {
 			};
 		});
 
-	// Factory pour BrokenLinkModal
+	// Factory for the BrokenLinkModal
 	container
 		.bind<BrokenLinkModalFactory>(TYPES.BrokenLinkModalFactory)
 		.toFactory(() => {

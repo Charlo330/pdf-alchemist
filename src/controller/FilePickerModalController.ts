@@ -22,7 +22,7 @@ export class FilePickerModalController {
                 return false;
             }
 
-            // Validation des fichiers
+            // Validate file paths
             const pdfFile = this.getFile(request.pdfPath);
             const noteFile = this.getFile(request.notePath);
             

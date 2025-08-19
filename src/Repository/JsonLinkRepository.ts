@@ -23,7 +23,6 @@ export class JsonLinkRepository implements ILinkRepository {
   private async loadIndex(): Promise<void> {
     try {
       const content = await this.app.vault.adapter.read(this.indexPath);
-      console.log("Loaded index content:", content);
       this.index = JSON.parse(content);
     } catch (error) {
       console.warn("Failed to load index, initializing empty.");

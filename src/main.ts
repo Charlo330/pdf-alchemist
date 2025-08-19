@@ -92,13 +92,11 @@ export default class PDFNotesPlugin extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, this.settings, await this.loadData());
-		console.log("load", this.settings)
 		this.stateManager.setSettings(this.settings);
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-		console.log("settings", this.settings)
 		this.stateManager.setSettings(this.settings);
 	}
 

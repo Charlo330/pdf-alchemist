@@ -1,5 +1,4 @@
 export function rootfilePath(basename: string): string {
-	console.log("rootfilePath", basename);
 	return `${basename}.md`;
 }
 
@@ -7,7 +6,7 @@ export function folderPath(folderPath: string, basename: string): string {
 	if (folderPath.startsWith("./")) {
 		folderPath = folderPath.slice(2);
 	}
-	console.log("folderPath", `${folderPath}/${basename}.md`);
+
 	return `${folderPath}/${basename}.md`;
 }
 
@@ -20,12 +19,10 @@ export function relativeFolderPath(
 	}
 	const folderPath = pdfPath.split("/").slice(0, -1).join("/");
 
-	console.log("relativeFolderPath", `${folderPath}/${relativetoPdfPath}`);
 	return `${folderPath}/${relativetoPdfPath}`;
 }
 
 export function sameFolderPath(pdfPath: string, basename: string): string {
-	console.log("sameFolderPath", pdfPath, basename);
 	if (pdfPath.startsWith("./")) {
 		pdfPath = pdfPath.slice(2);
 	}

@@ -2,10 +2,13 @@ import { inject } from "inversify";
 import { App, TFile, WorkspaceLeaf } from "obsidian";
 import { TYPES } from "src/type/types";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type View = {previewMode? : {renderer?: {pdfViewer?: any}}, pdfViewer?: any, viewer?: {child?: {pdfViewer?: any}}};
+type Viewer = {eventBus: {on: (event: string, callback: (event: { pageNumber: number }) => void) => void, off: (event: string, callback: (event: { pageNumber: number }) => void) => void}, _currentPageNumber?: number, pdfViewer?: { _currentPageNumber?: number }};
 type PageChangeCallback = (pageNumber: number) => void;
 
 export class PdfEventService {
-	private currentPdfViewer: { viewer: any; callback: any } | null = null;
+	private currentPdfViewer: { viewer: Viewer; callback: (event: { pageNumber: number }) => void } | null = null;
 
 	constructor(@inject(TYPES.App) private app: App) {}
 
@@ -15,7 +18,7 @@ export class PdfEventService {
 		const view = this.getPdfView(file);
 		if (!view) return;
 
-		const viewer =
+		const viewer : Viewer =
 			view?.previewMode?.renderer?.pdfViewer ||
 			view?.pdfViewer ||
 			view?.viewer?.child?.pdfViewer;
@@ -24,15 +27,13 @@ export class PdfEventService {
 
 		const wrappedCallback = (event: { pageNumber: number }) => {
 			callback(event.pageNumber);
-			console.log("Page changed to:", event.pageNumber);
 		};
 
 		viewer.eventBus.on("pagechanging", wrappedCallback);
 
 		this.currentPdfViewer = { viewer, callback: wrappedCallback };
 
-		// Appel initial avec la page actuelle
-		callback(viewer._currentPageNumber ?? viewer.pdfViewer?._currentPageNumber);
+		callback(viewer._currentPageNumber ?? viewer.pdfViewer?._currentPageNumber ?? 1);
 	}
 
 	public cleanup(): void {
@@ -50,10 +51,11 @@ export class PdfEventService {
 		this.currentPdfViewer = null;
 	}
 
-	private getPdfView(file: TFile): any {
+	private getPdfView(file: TFile): View | undefined {
 		return this.app.workspace
 			.getLeavesOfType("pdf")
-			.find((leaf: WorkspaceLeaf) => leaf.view?.file?.path === file.path)
-			?.view;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			.find((leaf: WorkspaceLeaf) => (leaf.view as any).file.path === file.path)
+			?.view as View;
 	}
 }

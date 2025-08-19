@@ -79,8 +79,6 @@ export class NoteRepository implements INoteRepository {
 
 		const file = this.app.vault.getFileByPath(link.notePath) as TFile;
 
-		console.log("file", file);
-
 		if (file) {
 			await this.app.vault.modify(file, markdownContent);
 		} else {

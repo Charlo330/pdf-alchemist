@@ -147,7 +147,7 @@ export class PdfNoteViewController {
 			const pdfPath = await this.fileLinkService.getLinkedPdfPath(
 				file.path
 			);
-			console.log("pdfPath", pdfPath);
+
 			if (pdfPath) {
 				await this.fileLinkService.deleteNoteLink(file.path);
 				new Notice(`Link to note deleted: ${file.path}`);
@@ -176,8 +176,6 @@ export class PdfNoteViewController {
 				pdfPath
 			);
 
-			console.log("linkedNote", linkedNote);
-
 			this.pdfNotesService.saveNoteByFilePath(
 				linkedNote?.notePath || "",
 				content
@@ -192,7 +190,6 @@ export class PdfNoteViewController {
 		if (!state.currentPdf) return "";
 
 		const pdf = this.stateManager.getCurrentPdf();
-		console.log("pageMode", state.isPageMode);
 
 		if (!pdf) {
 			return "";
@@ -248,7 +245,6 @@ export class PdfNoteViewController {
 			fileName,
 			""
 		)?.path;
-		console.log("subNotePath", subNotePath);
 
 		if (!subNotePath) {
 			const linkedNote = await this.fileLinkService.getLinkedNoteFile();

@@ -35,7 +35,6 @@ export class PdfNotesService {
 		if (!state.isInSubNote) return "";
 
 		const subNotePath = this.stateManager.peekNavigationStack();
-		console.log("subNotePath", subNotePath);
 		if (!subNotePath) return "";
 
 		return await this.noteRepo.findSubNoteContent(subNotePath);
@@ -48,10 +47,8 @@ export class PdfNotesService {
 	async saveNoteByPage(content: string): Promise<void> {
 		await this.ensureInitialized();
 		const pdfPath = this.stateManager.getCurrentPdf()?.path;
-		console.log("pdfPath", pdfPath);
 		const page = this.stateManager.getCurrentPage();
 		if (pdfPath) {
-			console.log("Saving note for PDF:", pdfPath, "Page:", page, "Content:", content);
 			await this.noteRepo.save(pdfPath, page, content);
 		}
 	}
@@ -90,8 +87,6 @@ export class PdfNotesService {
 	async createFolderIfNotExists(folderPath: string): Promise<string> {
 		const normalizedPath = normalize(folderPath);
 		let folder = this.app.vault.getAbstractFileByPath(normalizedPath);
-		console.log("Creating folder if not exists:", folder);
-		// TODO MODAL POUR TRY CATCH SI ON PEUT PAS CREER LE FOLDER
 		if (!folder) {
 			folder = await this.app.vault.createFolder(normalizedPath);
 		}

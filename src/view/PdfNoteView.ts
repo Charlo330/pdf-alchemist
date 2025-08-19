@@ -148,8 +148,6 @@ export class PdfNoteView extends ItemView {
 					return;
 				}
 
-				console.log("target", target)
-
 				if (target.textContent) {
 					await this.pdfNoteViewController.openSubNote(
 						target.textContent
@@ -164,9 +162,6 @@ export class PdfNoteView extends ItemView {
 		);
 
 		this.onStateChange(this.stateManager.getState());
-
-		const file = this.stateManager.getCurrentPdf();
-		console.log("Current PDF file:", file);
 	}
 
 	async createEventListeners() {
@@ -201,7 +196,6 @@ export class PdfNoteView extends ItemView {
 
 		this.registerEvent(
 			this.app.vault.on("rename", (file, oldPath) => {
-				console.log("File renamed:", file, "Old path:", oldPath);
 				this.pdfNoteViewController.updateFilesPath(file, oldPath);
 			})
 		);
@@ -209,7 +203,6 @@ export class PdfNoteView extends ItemView {
 		this.registerEvent(
 			this.app.vault.on("delete", async (file) => {
 				if (file instanceof TFile) {
-					console.log("File deleted:", file);
 					await this.pdfNoteViewController.deleteLink(file);
 				}
 			})
@@ -217,7 +210,6 @@ export class PdfNoteView extends ItemView {
 
 		this.registerEvent(
 			this.app.workspace.on("file-open", async (file) => {
-				console.log("File opened:", file);
 				await this.pdfNoteViewController.onPdfFileChanged(file);
 				this.lockBtnState = false;
 				setIcon(this.lockBtn, "lock-open");
@@ -298,7 +290,6 @@ export class PdfNoteView extends ItemView {
 	}
 
 	async onClose() {
-		console.log("Closing PDF Note View");
 		if (this.unsubscribe) {
 			this.unsubscribe();
 		}

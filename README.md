@@ -63,6 +63,8 @@ https://github.com/user-attachments/assets/ad100c69-9a7c-4203-8eb2-d0a5230dc195
 
 ### Creating Your First PDF Note
 
+<img width="713" height="83" alt="9e14c5019aeeae3da53e78f83273fd3ce08d72a036aed6d2cc995a45676599a1" src="https://github.com/user-attachments/assets/7422a254-8b26-4af9-b4ba-84180857b10b" />
+
 #### Automatic Creation
 `Auto-create notes` must be *enabled* in the settings
 1. Open any PDF file
@@ -77,6 +79,7 @@ https://github.com/user-attachments/assets/ad100c69-9a7c-4203-8eb2-d0a5230dc195
 	- *Creating New Note*: Select Page Mode or Single Note mode
 
 ### Working with Page Mode
+<img width="115" height="30" alt="9f5f89a6e6920b3243d9763b549f5abfb55887e1cd729b3baae124b9995a6580" src="https://github.com/user-attachments/assets/bf8ee7d0-696f-4ab1-8c6b-eb7ade08216b" />
 
 ```markdown
 ###### Page 1
@@ -95,6 +98,7 @@ You can skip pages - only pages with notes are saved...
 - Clean, organized structure
 
 ### Working with Single Note Mode
+<img width="115" height="30" alt="cd356906a7251086e3d473948dae288d50db1a57d648059763fb0bd6a81df376" src="https://github.com/user-attachments/assets/e1b481a4-0bd1-430a-912e-5dc2988f5bda" />
 
 Write comprehensive notes in one file:
 - Document summaries
@@ -104,7 +108,9 @@ Write comprehensive notes in one file:
 
 ### Link Management Interface
 
-Access via "Link PDF to Note" command:
+<img width="1437" height="845" alt="485080630f100102499021ba828c2417f8b7986333746eecc74c5c7cc9ceebda" src="https://github.com/user-attachments/assets/8761d09a-bdb0-420d-94bf-b05449e4831d" />
+
+#### Access via "Link PDF to Note" command or automatically when opening a new file if not in Auto-create notes:
 
 - Create New Links: Enter a PDF path and a note path, then choose between Single Note (📄) or Page Mode (📚) before linking.
 

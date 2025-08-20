@@ -12,7 +12,7 @@ import { PdfEventService } from "src/Service/PdfEventService";
 import { PdfNotesService } from "src/Service/PdfNotesService";
 import { StateManager } from "src/StateManager";
 import { TYPES } from "src/type/types";
-import { BrokenLinkModalFactory, container } from "src/container";
+import { NoLinkedFileModalFactory, container } from "src/container";
 
 @injectable()
 export class PdfNoteViewController {
@@ -139,8 +139,8 @@ export class PdfNoteViewController {
 			);
 		} else if (!existingLink && !settings.autoCreateNotes) {
 			// Show a modal to inform the user
-			const modal = container.get<BrokenLinkModalFactory>(
-				TYPES.BrokenLinkModalFactory
+			const modal = container.get<NoLinkedFileModalFactory>(
+				TYPES.NoLinkedFileModalFactory
 			)(file.path);
 			modal.open();
 			this.stateManager.setCurrentPdf(null);

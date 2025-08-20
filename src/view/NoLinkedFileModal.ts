@@ -1,7 +1,7 @@
 import { App, Modal, setIcon } from "obsidian";
 import { BrokenLinkModalController } from "src/controller/BrokenLinkModalController";
 
-export class BrokenLinkModal extends Modal {
+export class NoLinkedFileModal extends Modal {
 	private pdfLink: string | null = null;
 	private brokenLinkModalController: BrokenLinkModalController;
 	private isPageMode: boolean;
@@ -71,7 +71,7 @@ export class BrokenLinkModal extends Modal {
 		};
 
 		const btn = div.createEl("button", {
-			text: "Repair Link",
+			text: "Link to existing note",
 			cls: "btn-primary",
 		});
 		btn.onclick = async () => {

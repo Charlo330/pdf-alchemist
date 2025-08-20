@@ -15,5 +15,5 @@ export const TYPES = {
 	PdfNoteViewControllerFactory: Symbol.for("PdfNoteViewControllerFactory"),
 		PdfNoteViewFactory: Symbol.for("PdfNoteViewFactory"),
 	FilePickerModalFactory: Symbol.for("FilePickerModalFactory"),
-	BrokenLinkModalFactory: Symbol.for("BrokenLinkModalFactory"),
+	NoLinkedFileModalFactory: Symbol.for("NoLinkedFileModalFactory"),
 };

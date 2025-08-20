@@ -11,7 +11,7 @@ import { PdfNoteViewController } from "./controller/PdfNoteViewController";
 import { PdfEventService } from "./Service/PdfEventService";
 import { BrokenLinkModalController } from "./controller/BrokenLinkModalController";
 import { FilePickerModalController } from "./controller/FilePickerModalController";
-import { BrokenLinkModal } from "./view/BrokenLinkModal";
+import { NoLinkedFileModal } from "./view/NoLinkedFileModal";
 import { FilePickerModal } from "./view/FilePickerModal";
 
 export const container = new Container();
@@ -19,7 +19,7 @@ export const container = new Container();
 // Type for the factory
 export type PdfNoteViewFactory = (leaf: WorkspaceLeaf) => PdfNoteView;
 export type FilePickerModalFactory = (path: string | undefined) => FilePickerModal;
-export type BrokenLinkModalFactory = (path: string) => BrokenLinkModal;
+export type NoLinkedFileModalFactory = (path: string) => NoLinkedFileModal;
 
 export function configureContainer(app: App): void {
 	container.bind<App>(TYPES.App).toConstantValue(app);
@@ -91,20 +91,20 @@ export function configureContainer(app: App): void {
 			};
 		});
 
-	// Factory for the BrokenLinkModal
+	// Factory for the NoLinkedFileModal
 	container
-		.bind<BrokenLinkModalFactory>(TYPES.BrokenLinkModalFactory)
+		.bind<NoLinkedFileModalFactory>(TYPES.NoLinkedFileModalFactory)
 		.toFactory(() => {
 			return (path: string) => {
 				const app = container.get<App>(TYPES.App);
-				const brokenLinkModalController =
+				const noLinkedFileModalFactory =
 					container.get<BrokenLinkModalController>(
 						TYPES.BrokenLinkModalController
 					);
 					
-				return new BrokenLinkModal(
+				return new NoLinkedFileModal(
 					app,
-					brokenLinkModalController,
+					noLinkedFileModalFactory,
 					path,
 				);
 			};

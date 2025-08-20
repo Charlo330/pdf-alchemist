@@ -1,11 +1,10 @@
 import { inject, injectable } from "inversify";
 import { App } from "obsidian";
 import { TYPES } from "src/type/types";
-import { ILinkRepository } from "src/type/ILinkRepository";
 import { PdfNoteLink } from "src/type/PdfNoteLink";
 
 @injectable()
-export class JsonLinkRepository implements ILinkRepository {
+export class JsonLinkRepository {
   private readonly indexPath = "pdf-note-index.json";
   private index: Record<string, { notePath: string; isPageMode: boolean }> = {};
 

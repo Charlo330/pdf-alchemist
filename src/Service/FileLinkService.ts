@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { App, TFile } from "obsidian";
+import { JsonLinkRepository } from "src/Repository/JsonLinkRepository";
 import { StateManager } from "src/StateManager";
-import type { ILinkRepository } from "src/type/ILinkRepository";
 import { LinkItem } from "src/type/LinkItem";
 import { PaginatedLinks } from "src/type/PaginatedLinks";
 import { PdfNoteLink } from "src/type/PdfNoteLink";
@@ -10,7 +10,7 @@ import { TYPES } from "src/type/types";
 @injectable()
 export class FileLinkService {
 	constructor(
-		@inject(TYPES.LinkRepository) private linkRepo: ILinkRepository,
+		@inject(TYPES.LinkRepository) private linkRepo: JsonLinkRepository,
 		@inject(TYPES.StateManager) private stateManager: StateManager,
 		@inject(TYPES.App) private app: App
 	) {}

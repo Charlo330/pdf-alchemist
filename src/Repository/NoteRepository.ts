@@ -1,19 +1,18 @@
 import { inject, injectable } from "inversify";
 import { App, TFile } from "obsidian";
 import { TYPES } from "src/type/types";
-import { INoteRepository } from "src/type/INoteRepository";
-import type { ILinkRepository } from "src/type/ILinkRepository";
 import { StateManager } from "src/StateManager";
+import { JsonLinkRepository } from "./JsonLinkRepository";
 
 const HEADER = "###### Page";
 @injectable()
-export class NoteRepository implements INoteRepository {
+export class NoteRepository {
 	private notes: string[] = [];
 	private unsubscribe: (() => void) | null = null;
 
 	constructor(
 		@inject(TYPES.App) private app: App,
-		@inject(TYPES.LinkRepository) private linkRepo: ILinkRepository,
+		@inject(TYPES.LinkRepository) private linkRepo: JsonLinkRepository,
 		@inject(TYPES.StateManager) private stateManager: StateManager
 	) {}
 

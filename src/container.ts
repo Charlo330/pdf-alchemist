@@ -1,8 +1,6 @@
 import { Container } from "inversify";
 import { StateManager } from "./StateManager";
 import { PdfNotesService } from "./Service/PdfNotesService";
-import { INoteRepository } from "./type/INoteRepository";
-import { ILinkRepository } from "./type/ILinkRepository";
 import { NoteRepository } from "./Repository/NoteRepository";
 import { JsonLinkRepository } from "./Repository/JsonLinkRepository";
 import { App, WorkspaceLeaf } from "obsidian";
@@ -30,10 +28,10 @@ export function configureContainer(app: App): void {
 		.to(StateManager)
 		.inSingletonScope();
 	container
-		.bind<ILinkRepository>(TYPES.LinkRepository)
+		.bind<JsonLinkRepository>(TYPES.LinkRepository)
 		.to(JsonLinkRepository)
 		.inSingletonScope();
-	container.bind<INoteRepository>(TYPES.NoteRepository).to(NoteRepository);
+	container.bind<NoteRepository>(TYPES.NoteRepository).to(NoteRepository);
 	container
 		.bind<PdfNotesService>(TYPES.PdfNotesService)
 		.to(PdfNotesService)

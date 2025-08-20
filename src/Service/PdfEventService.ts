@@ -2,13 +2,10 @@ import { inject } from "inversify";
 import { App, TFile, WorkspaceLeaf } from "obsidian";
 import { TYPES } from "src/type/types";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type View = {previewMode? : {renderer?: {pdfViewer?: any}}, pdfViewer?: any, viewer?: {child?: {pdfViewer?: any}}};
-type Viewer = {eventBus: {on: (event: string, callback: (event: { pageNumber: number }) => void) => void, off: (event: string, callback: (event: { pageNumber: number }) => void) => void}, _currentPageNumber?: number, pdfViewer?: { _currentPageNumber?: number }};
 type PageChangeCallback = (pageNumber: number) => void;
 
 export class PdfEventService {
-	private currentPdfViewer: { viewer: Viewer; callback: (event: { pageNumber: number }) => void } | null = null;
+	private currentPdfViewer: { viewer: any; callback: any } | null = null;
 
 	constructor(@inject(TYPES.App) private app: App) {}
 
@@ -18,7 +15,7 @@ export class PdfEventService {
 		const view = this.getPdfView(file);
 		if (!view) return;
 
-		const viewer : Viewer =
+		const viewer =
 			view?.previewMode?.renderer?.pdfViewer ||
 			view?.pdfViewer ||
 			view?.viewer?.child?.pdfViewer;
@@ -33,7 +30,8 @@ export class PdfEventService {
 
 		this.currentPdfViewer = { viewer, callback: wrappedCallback };
 
-		callback(viewer._currentPageNumber ?? viewer.pdfViewer?._currentPageNumber ?? 1);
+		// Appel initial avec la page actuelle
+		callback(viewer._currentPageNumber ?? viewer.pdfViewer?._currentPageNumber);
 	}
 
 	public cleanup(): void {
@@ -51,11 +49,10 @@ export class PdfEventService {
 		this.currentPdfViewer = null;
 	}
 
-	private getPdfView(file: TFile): View | undefined {
+	private getPdfView(file: TFile): any {
 		return this.app.workspace
 			.getLeavesOfType("pdf")
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			.find((leaf: WorkspaceLeaf) => (leaf.view as any).file.path === file.path)
-			?.view as View;
+			.find((leaf: WorkspaceLeaf) => leaf.view?.file?.path === file.path)
+			?.view;
 	}
 }

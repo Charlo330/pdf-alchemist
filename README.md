@@ -24,14 +24,15 @@ https://github.com/user-attachments/assets/ad100c69-9a7c-4203-8eb2-d0a5230dc195
 
 #### 📝 Single Note Mode
 - Create **one comprehensive note per PDF**
+- The notes **are not** separated by each PDF pages
 - Ideal for general note-taking and document summaries
-- All thoughts and annotations in one place
+- All thoughts and annotations in one place (you can still use sub notes)
 
 ### 🎨 Intuitive Interface
 - **Sidebar View**: Dedicated PDF Notes panel in your workspace
 - **Real-time Editing**: Notes save automatically as you type
 - **Visual Indicators**: Clear icons showing current mode (Page/Single Note)
-- **Page Lock Feature**: Lock/unlock page synchronization
+- **Page Lock Feature**: Lock/unlock page
 
 ### ⚙️ Flexible Organization
 - **Multiple Folder Options**:
@@ -40,6 +41,31 @@ https://github.com/user-attachments/assets/ad100c69-9a7c-4203-8eb2-d0a5230dc195
   - Root vault folder
   - Relative folder paths
 - **Batch Link Management**: View, search, and manage all PDF-note links
+
+## 📌 How do the links work ?
+<img width="763" height="56" alt="6de6057e826e531f8a4c440982c3addca692d888e9e18bd864f8de243753f891" src="https://github.com/user-attachments/assets/83337615-19b5-47cd-a01f-7d81d94abfcd" />
+
+
+To remember which PDFs are associated with which Markdown files, the plugin saves a link between them.
+
+Normally, when you rename/move/delete a file, the related link will be updated automatically ✨
+
+But if an error occurs, you can fix a broken link between a PDF and a Markdown file: [Fix a broken link](#-fix-a-broken-link)
+
+## 🔧 Fix a broken link
+#### If a link between a Markdown file and a PDF breaks, you can repair it:
+1) Use the command **Link PDF to Note** to open the link modal
+
+2) **Delete the broken link** if it exists. You can find it using the search bar by entering the PDF or Markdown file name.
+
+3) **Create a new link** in the "Create New Link" section:
+
+	- Enter the PDF path in the first input.
+
+	- Enter the Markdown note path in the second input.
+
+4) Select Page Mode if needed using the checkbox.
+
 
 ## 🚀 Getting Started
 
@@ -54,7 +80,6 @@ https://github.com/user-attachments/assets/ad100c69-9a7c-4203-8eb2-d0a5230dc195
 2. **Access PDF Notes** via:
    - Command Palette: "Open PDF Notes"
    - Ribbon icon (🪄)
-   - Right-click → "Open PDF Notes"
 3. **Choose your mode**:
    - Toggle Page Mode for per-page notes
    - Disable for single comprehensive note
@@ -75,7 +100,7 @@ https://github.com/user-attachments/assets/ad100c69-9a7c-4203-8eb2-d0a5230dc195
 1. Open a PDF in Obsidian
 2. A modal will appear
 3. Choose to *link an existing note* or *create a new one*
-	- *Link existing note*: [See this section](#link-management-interface)
+	- *Link existing note*: [Link Management Interface](#link-management-interface)
 	- *Creating New Note*: Select Page Mode or Single Note mode
 
 ### Working with Page Mode

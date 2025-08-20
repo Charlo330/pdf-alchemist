@@ -13,6 +13,7 @@ import { PdfNotesService } from "src/Service/PdfNotesService";
 import { StateManager } from "src/StateManager";
 import { TYPES } from "src/type/types";
 import { NoLinkedFileModalFactory, container } from "src/container";
+import { link } from "fs";
 
 @injectable()
 export class PdfNoteViewController {
@@ -60,7 +61,7 @@ export class PdfNoteViewController {
 
 		// Set new timeout
 		this.saveTimeout = setTimeout(async () => {
-			console.log("Saving note content...");
+			console.log("file", this.stateManager.getCurrentPdf());
 			try {
 				if (this.stateManager.getState().isInSubNote) {
 					await this.saveSubNote(content);
@@ -129,6 +130,10 @@ export class PdfNoteViewController {
 			file?.path || ""
 		);
 
+		const linkedNoteExist = this.app.vault.getFileByPath(
+			existingLink?.notePath || ""
+		);
+
 		const settings = this.stateManager.getSettings();
 
 		if (!existingLink && settings.autoCreateNotes) {
@@ -138,18 +143,25 @@ export class PdfNoteViewController {
 				settings.isPageMode
 			);
 		} else if (!existingLink && !settings.autoCreateNotes) {
-			// Show a modal to inform the user
-			const modal = container.get<NoLinkedFileModalFactory>(
-				TYPES.NoLinkedFileModalFactory
-			)(file.path);
-			modal.open();
-			this.stateManager.setCurrentPdf(null);
-			await this.pdfNotesService.onPdfChanged();
+			this.linkDoNotExist(file.path);
+			return;
+		} else if (!linkedNoteExist) {
+			this.linkDoNotExist(file.path);
 			return;
 		}
+
 		this.stateManager.setCurrentPdf(file);
 		this.stateManager.setIsPageMode(existingLink?.isPageMode || null);
 		await this.pdfNotesService.onPdfChanged();
+	}
+
+	private linkDoNotExist(link: string): void {
+		const modal = container.get<NoLinkedFileModalFactory>(
+			TYPES.NoLinkedFileModalFactory
+		)(link);
+		modal.open();
+		this.stateManager.setCurrentPdf(null);
+		this.pdfNotesService.onPdfChanged();
 	}
 
 	async getLinkedNotePath(pdfPath: string): Promise<string | null> {
@@ -183,6 +195,10 @@ export class PdfNoteViewController {
 		}
 
 		if (file.extension === "pdf") {
+			if (this.stateManager.getCurrentPdf() == file) {
+				this.stateManager.setCurrentPdf(null);
+				this.pdfNotesService.onPdfChanged();
+			}
 			await this.fileLinkService.deletePdfLink(file.path);
 			new Notice(`Link to PDF deleted: ${file.path}`);
 		} else if (file.extension === "md") {
@@ -191,10 +207,11 @@ export class PdfNoteViewController {
 			);
 
 			if (pdfPath) {
+				if (this.stateManager.getCurrentPdf()?.path == pdfPath.pdfPath) {
+					this.linkDoNotExist(pdfPath.pdfPath);
+				}
 				await this.fileLinkService.deleteNoteLink(file.path);
 				new Notice(`Link to note deleted: ${file.path}`);
-			} else {
-				new Notice(`No linked PDF found for note: ${file.path}`);
 			}
 		}
 	}

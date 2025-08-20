@@ -155,7 +155,6 @@ export class FilePickerModal extends Modal {
         }
         new FolderSuggest(this.app, mdInput, FileTypeEnum.MARKDOWN);
 
-        // Validation en temps réel
         pdfInput.addEventListener("blur", () => this.validateInput(pdfInput));
         mdInput.addEventListener("blur", () => this.validateInput(mdInput));
     }
@@ -336,10 +335,6 @@ export class FilePickerModal extends Modal {
         const modeDiv = linkInfo.createEl("div", { cls: "link-mode" });
         const modeIcon = modeDiv.createSpan({ cls: "mode-icon" });
         setIcon(modeIcon, link.isPageMode ? "file-stack" : "file");
-        modeDiv.createSpan({ 
-            text: link.isPageMode ? "Page Mode" : "Single Note",
-            cls: "mode-text"
-        });
     }
 
     private createLinkActions(container: HTMLElement, link: LinkItem): void {

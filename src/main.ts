@@ -1,6 +1,11 @@
-import { configureContainer, container, FilePickerModalFactory, PdfNoteViewFactory } from "./container";
+import {
+	configureContainer,
+	container,
+	FilePickerModalFactory,
+	PdfNoteViewFactory,
+} from "./container";
 
-import { Plugin } from "obsidian";
+import { Plugin, TFile } from "obsidian";
 import { PluginSettings } from "./type/PluginSettings";
 import { PDF_NOTE_VIEW } from "./view/PdfNoteView";
 import { PdfNotesSettingTab } from "./settings/PdfNotesSettingTab";
@@ -8,16 +13,18 @@ import { FilePickerModal } from "./view/FilePickerModal";
 import { TYPES } from "./type/types";
 import { NoteRepository } from "./Repository/NoteRepository";
 import { StateManager } from "./StateManager";
+import { PdfNoteViewController } from "./controller/PdfNoteViewController";
 
 export default class PDFNotesPlugin extends Plugin {
 	settings: PluginSettings = {
 		autoCreateNotes: true,
 		folderLocation: "sameFolder",
 		folderLocationPath: null,
-		isPageMode: true
+		isPageMode: true,
 	};
 
 	private stateManager: StateManager;
+	private pdfNoteViewController: PdfNoteViewController;
 
 	private unsubscribe: (() => void) | null = null;
 
@@ -29,6 +36,9 @@ export default class PDFNotesPlugin extends Plugin {
 		);
 
 		this.stateManager = container.get<StateManager>(TYPES.StateManager);
+		this.pdfNoteViewController = container.get<PdfNoteViewController>(
+			TYPES.PdfNoteViewController
+		);
 
 		await this.loadSettings();
 
@@ -45,22 +55,37 @@ export default class PDFNotesPlugin extends Plugin {
 		this.addCommand({
 			id: "link-pdf-to-note",
 			name: "Link PDF to Note",
-			callback: () =>
-				this.openFilePickerModal(),
+			callback: () => this.openFilePickerModal(),
 		});
 
 		this.addRibbonIcon("wand-sparkles", "Open PDF Notes", () => {
 			this.openPdfNotes();
 		});
 
-
 		this.app.workspace.onLayoutReady(async () => {
 			await this.initializeAfterLayout();
+
+			this.registerEvent(
+				this.app.vault.on("rename", (file, oldPath) => {
+					console.log("renamed", file.path)
+					this.pdfNoteViewController.updateFilesPath(file, oldPath);
+				})
+			);
+
+			this.registerEvent(
+				this.app.vault.on("delete", async (file) => {
+					if (file instanceof TFile) {
+						await this.pdfNoteViewController.deleteLink(file);
+					}
+				})
+			);
 		});
 	}
 
-	private  openFilePickerModal(path?: string): FilePickerModal {
-		const modal = container.get<FilePickerModalFactory>(TYPES.FilePickerModalFactory)(path);
+	private openFilePickerModal(path?: string): FilePickerModal {
+		const modal = container.get<FilePickerModalFactory>(
+			TYPES.FilePickerModalFactory
+		)(path);
 		modal.open();
 		return modal;
 	}
@@ -84,7 +109,9 @@ export default class PDFNotesPlugin extends Plugin {
 				active: true,
 			});
 			this.app.workspace.revealLeaf(leaf);
-			const noteRepo = container.get<NoteRepository>(TYPES.NoteRepository);
+			const noteRepo = container.get<NoteRepository>(
+				TYPES.NoteRepository
+			);
 			noteRepo.initialize();
 		}
 	}

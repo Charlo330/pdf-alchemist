@@ -196,20 +196,6 @@ export class PdfNoteView extends ItemView {
 		);
 
 		this.registerEvent(
-			this.app.vault.on("rename", (file, oldPath) => {
-				this.pdfNoteViewController.updateFilesPath(file, oldPath);
-			})
-		);
-
-		this.registerEvent(
-			this.app.vault.on("delete", async (file) => {
-				if (file instanceof TFile) {
-					await this.pdfNoteViewController.deleteLink(file);
-				}
-			})
-		);
-
-		this.registerEvent(
 			this.app.workspace.on("file-open", async (file) => {
 				await this.pdfNoteViewController.forceSave(this.editor.value);
 				await this.pdfNoteViewController.onPdfFileChanged(file);

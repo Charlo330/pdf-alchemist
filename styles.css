@@ -363,11 +363,8 @@
 .page-mode-icon {
     display: inline-flex;
     align-items: center;
-}
-
-.page-mode-icon svg {
-    width: 16px;
-    height: 16px;
+	    width: 24px;
+    height: 24px;
 }
 
 .page-mode-toggle-input-wrapper {

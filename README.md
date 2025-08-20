@@ -3,7 +3,11 @@
 A powerful Obsidian plugin that creates seamless connections between your PDFs and markdown notes, offering two distinct modes for organizing your thoughts and annotations.
 
 
-https://github.com/user-attachments/assets/ad100c69-9a7c-4203-8eb2-d0a5230dc195
+
+
+https://github.com/user-attachments/assets/71ab4787-cfbb-4414-b797-d2d7cbe30ed6
+
+
 
 
 ## ✨ Features

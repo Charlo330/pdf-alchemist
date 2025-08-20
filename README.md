@@ -43,7 +43,9 @@ https://github.com/user-attachments/assets/ad100c69-9a7c-4203-8eb2-d0a5230dc195
 - **Batch Link Management**: View, search, and manage all PDF-note links
 
 ## 📌 How do the links work ?
-<img width="763" height="56" alt="6de6057e826e531f8a4c440982c3addca692d888e9e18bd864f8de243753f891" src="https://github.com/user-attachments/assets/83337615-19b5-47cd-a01f-7d81d94abfcd" />
+<img width="851" height="64" alt="image" src="https://github.com/user-attachments/assets/7d3546cd-9e0a-4d3d-993c-4824da2c53f4" />
+
+
 
 
 To remember which PDFs are associated with which Markdown files, the plugin saves a link between them.

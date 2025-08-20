@@ -69,7 +69,7 @@ A powerful Obsidian plugin that creates seamless connections between your PDFs a
 1. Open a PDF in Obsidian
 2. A modal will appear
 3. Choose to *link an existing note* or *create a new one*
-	- *Link existing note*: [See this section](https://github.com/Charlo330/pdf-alchemist/blob/develop/README.md#L101)
+	- *Link existing note*: [See this section](#link-management-interface)
 	- *Creating New Note*: Select Page Mode or Single Note mode
 
 ### Working with Page Mode

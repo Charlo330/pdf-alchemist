@@ -60,16 +60,17 @@ A powerful Obsidian plugin that creates seamless connections between your PDFs a
 ### Creating Your First PDF Note
 
 #### Automatic Creation
-1. Enable "Auto-create notes" in settings
-2. Open any PDF file
-3. The plugin automatically creates a linked note
+`Auto-create notes` must be *enabled* in the settings
+1. Open any PDF file
+2. The plugin automatically creates a linked note
 
 #### Manual Creation
-1. Use Command: "Link PDF to Note"
-2. Select your PDF file
-3. Choose or create a markdown file
-4. Select Page Mode or Single Note mode
-5. Click "Create Link"
+`Auto-create notes` must be *disabled* in the settings
+1. Open a PDF in Obsidian
+2. A modal will appear
+3. Choose to *link an existing note* or *create a new one*
+	- *Link existing note*: [See this section](https://github.com/Charlo330/pdf-alchemist/blob/develop/README.md#L101)
+	- *Creating New Note*: Select Page Mode or Single Note mode
 
 ### Working with Page Mode
 
@@ -101,11 +102,15 @@ Write comprehensive notes in one file:
 
 Access via "Link PDF to Note" command:
 
-- **Create New Links**: Connect any PDF to any markdown file
-- **Search & Filter**: Find links quickly with real-time search
-- **Bulk Management**: View all your PDF-note connections
-- **Visual Mode Indicators**: See which links use Page Mode vs Single Note
-- **Easy Deletion**: Remove links with confirmation dialogs
+- Create New Links: Enter a PDF path and a note path, then choose between Single Note (📄) or Page Mode (📚) before linking.
+
+- Search & Filter: Use the search bar to quickly find existing links by PDF or note name.
+
+- Browse Connections: Scroll through all PDF–note links with pagination for large lists.
+
+- Mode Indicators: Each link shows whether it uses Page Mode or Single Note.
+
+- Delete Links: Remove a link with one click, with a confirmation step to avoid mistakes.
 
 ## ⚙️ Settings
 
@@ -130,7 +135,6 @@ Access via "Link PDF to Note" command:
 ### Context Menu Integration
 Right-click any PDF or markdown file to:
 - **Show Linked File**: Instantly see what's connected
-- **Create/Repair Links**: Quick access to link management
 
 ## 🎨 UI Components
 

@@ -117,7 +117,6 @@ export default class PDFNotesPlugin extends Plugin {
 			try {
 				await noteRepo.initialize();
 			} catch (error) {
-				console.log("error", error);
 				this.pdfNoteViewController.linkDoNotExist("");
 			}
 		}

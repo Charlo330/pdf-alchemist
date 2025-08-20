@@ -13,7 +13,6 @@ import { PdfNotesService } from "src/Service/PdfNotesService";
 import { StateManager } from "src/StateManager";
 import { TYPES } from "src/type/types";
 import { NoLinkedFileModalFactory, container } from "src/container";
-import { link } from "fs";
 
 @injectable()
 export class PdfNoteViewController {

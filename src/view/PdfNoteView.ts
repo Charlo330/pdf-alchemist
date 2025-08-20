@@ -23,6 +23,8 @@ export class PdfNoteView extends ItemView {
 	private unsubscribe: (() => void) | null = null;
 	private lockBtn: HTMLButtonElement;
 	private lockBtnState = false;
+	private saveTimeout: NodeJS.Timeout | null = null;
+	private readonly DEBOUNCE_DELAY = 500; // 500 milliseconds
 
 	constructor(
 		leaf: WorkspaceLeaf,
@@ -91,7 +93,8 @@ export class PdfNoteView extends ItemView {
 			cls: "navigation-button",
 		});
 
-		backButton.onclick = () => {
+		backButton.onclick = async () => {
+			await this.pdfNoteViewController.forceSave(this.editor.value);
 			this.pdfNoteViewController.previousSubNote();
 		};
 
@@ -100,7 +103,8 @@ export class PdfNoteView extends ItemView {
 			cls: "navigation-button",
 		});
 
-		homeButton.onclick = () => {
+		homeButton.onclick = async () => {
+			await this.pdfNoteViewController.forceSave(this.editor.value);
 			this.pdfNoteViewController.mainNote();
 		};
 
@@ -134,11 +138,7 @@ export class PdfNoteView extends ItemView {
 			value: "",
 			placeholder: "Type your notes here...",
 			onChange: () => {
-				if (this.stateManager.getState().isInSubNote) {
-					this.pdfNoteViewController.saveSubNote(this.editor.value);
-				} else {
-					this.pdfNoteViewController.saveNote(this.editor.value);
-				}
+				this.pdfNoteViewController.debouncedSave(this.editor.value)
 			},
 			onClickLink: async (event) => {
 				const target = event.target as HTMLAnchorElement;
@@ -149,6 +149,7 @@ export class PdfNoteView extends ItemView {
 				}
 
 				if (target.textContent) {
+					await this.pdfNoteViewController.forceSave(this.editor.value);
 					await this.pdfNoteViewController.openSubNote(
 						target.textContent
 					);
@@ -210,6 +211,7 @@ export class PdfNoteView extends ItemView {
 
 		this.registerEvent(
 			this.app.workspace.on("file-open", async (file) => {
+				await this.pdfNoteViewController.forceSave(this.editor.value);
 				await this.pdfNoteViewController.onPdfFileChanged(file);
 				this.lockBtnState = false;
 				setIcon(this.lockBtn, "lock-open");
@@ -290,6 +292,7 @@ export class PdfNoteView extends ItemView {
 	}
 
 	async onClose() {
+		await await this.pdfNoteViewController.forceSave(this.editor.value);
 		if (this.unsubscribe) {
 			this.unsubscribe();
 		}

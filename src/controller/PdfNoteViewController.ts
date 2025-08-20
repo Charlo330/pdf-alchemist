@@ -16,6 +16,9 @@ import { BrokenLinkModalFactory, container } from "src/container";
 
 @injectable()
 export class PdfNoteViewController {
+	private saveTimeout: NodeJS.Timeout | null = null;
+	private readonly DEBOUNCE_DELAY = 500; // 500 milliseconds
+
 	constructor(
 		@inject(TYPES.App) private app: App,
 		@inject(TYPES.StateManager) private stateManager: StateManager,
@@ -47,6 +50,45 @@ export class PdfNoteViewController {
 
 	cleanupPageChangeListener() {
 		this.pdfEventService.cleanup();
+	}
+
+	async debouncedSave(content: string): Promise<void> {
+		// Clear existing timeout
+		if (this.saveTimeout) {
+			clearTimeout(this.saveTimeout);
+		}
+
+		// Set new timeout
+		this.saveTimeout = setTimeout(async () => {
+			console.log("Saving note content...");
+			try {
+				if (this.stateManager.getState().isInSubNote) {
+					await this.saveSubNote(content);
+				} else {
+					await this.saveNote(content);
+				}
+			} catch (error) {
+				console.error("Error saving note:", error);
+				new Notice("Failed to save note. Please try again.");
+			}
+		}, this.DEBOUNCE_DELAY);
+	}
+
+	async forceSave(value: string): Promise<void> {
+		if (this.saveTimeout) {
+			clearTimeout(this.saveTimeout);
+			this.saveTimeout = null;
+		}
+
+		try {
+			if (this.stateManager.getState().isInSubNote) {
+				await this.saveSubNote(value);
+			} else {
+				await this.saveNote(value);
+			}
+		} catch (error) {
+			console.error("Error force saving note:", error);
+		}
 	}
 
 	createLockButton(container: HTMLElement): HTMLButtonElement {
@@ -223,7 +265,7 @@ export class PdfNoteViewController {
 	mainNote(): void {
 		this.pdfNotesService.mainNote();
 	}
-	
+
 	previousSubNote(): void {
 		this.pdfNotesService.previousSubNote();
 	}

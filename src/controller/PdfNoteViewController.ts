@@ -154,7 +154,7 @@ export class PdfNoteViewController {
 		await this.pdfNotesService.onPdfChanged();
 	}
 
-	private linkDoNotExist(link: string): void {
+	linkDoNotExist(link: string): void {
 		const modal = container.get<NoLinkedFileModalFactory>(
 			TYPES.NoLinkedFileModalFactory
 		)(link);

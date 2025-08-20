@@ -67,7 +67,7 @@ export default class PDFNotesPlugin extends Plugin {
 
 			this.registerEvent(
 				this.app.vault.on("rename", (file, oldPath) => {
-					console.log("renamed", file.path)
+					console.log("renamed", file.path);
 					this.pdfNoteViewController.updateFilesPath(file, oldPath);
 				})
 			);
@@ -108,11 +108,18 @@ export default class PDFNotesPlugin extends Plugin {
 				type: PDF_NOTE_VIEW,
 				active: true,
 			});
+
 			this.app.workspace.revealLeaf(leaf);
 			const noteRepo = container.get<NoteRepository>(
 				TYPES.NoteRepository
 			);
-			noteRepo.initialize();
+
+			try {
+				await noteRepo.initialize();
+			} catch (error) {
+				console.log("error", error);
+				this.pdfNoteViewController.linkDoNotExist("");
+			}
 		}
 	}
 

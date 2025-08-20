@@ -16,7 +16,7 @@ export class NoteRepository {
 		@inject(TYPES.StateManager) private stateManager: StateManager
 	) {}
 
-	async initialize() {
+	async initialize(): Promise<void> {
 		const pdfPath = this.stateManager.getCurrentPdf()?.path;
 
 		if (!pdfPath) {

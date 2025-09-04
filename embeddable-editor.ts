@@ -1,4 +1,4 @@
-import { App, Scope, TFile} from "obsidian";
+import { App, Scope, TFile } from "obsidian";
 
 import { EditorSelection, Prec } from "@codemirror/state";
 import { EditorView, keymap, placeholder, ViewUpdate } from "@codemirror/view";
@@ -286,13 +286,18 @@ export class EmbeddableMarkdownEditor {
 			"click",
 			(event: MouseEvent) => {
 				const target = event.target as HTMLElement;
-				if (this.options.onClickLink) { // Prevent default link behavior
+				if (this.options.onClickLink) {
+					// Prevent default link behavior
 					if (
 						target.tagName == "A" &&
 						target.hasAttribute("href") &&
-						(target.parentElement?.className.contains(
-							"cm-hmd-internal"
-						) || target.parentElement?.parentElement?.className.contains("cm-hmd-internal"))
+						!Array.from(target.parentElement?.classList ?? []).some(
+							(c) =>
+								![
+									"cm-hmd-internal-link",
+									"cm-link-alias",
+								].includes(c)
+						)
 					) {
 						this.options.onClickLink(event);
 						event.stopImmediatePropagation();

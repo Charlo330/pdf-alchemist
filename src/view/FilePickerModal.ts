@@ -326,13 +326,13 @@ export class FilePickerModal extends Modal {
         pdfDiv.createEl("span", { text: link.pdfPath, cls: "path-value" });
         
         const arrowDiv = linkInfo.createEl("div", { cls: "link-arrow" });
-        arrowDiv.textContent = "→";
-
-        const noteDiv = linkInfo.createEl("div", { cls: "link-path note-path" });
+		const arrowEl = arrowDiv.createEl("div");
+		setIcon(arrowEl, "corner-down-right");
+		const noteDiv = arrowDiv.createEl("div", { cls: "link-path note-path" });
         noteDiv.createEl("span", { text: "Note: ", cls: "path-label" });
         noteDiv.createEl("span", { text: link.notePath, cls: "path-value" });
         
-        const modeDiv = linkInfo.createEl("div", { cls: "link-mode" });
+        const modeDiv = arrowDiv.createEl("div", { cls: "link-mode" });
         const modeIcon = modeDiv.createSpan({ cls: "mode-icon" });
         setIcon(modeIcon, link.isPageMode ? "file-stack" : "file");
     }

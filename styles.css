@@ -114,35 +114,38 @@
 	padding: 0;
 }
 
-/* FilePickerModal Styles */
+/* FilePickerModal Responsive Styles */
 .file-picker-modal .modal-content {
-    max-width: 800px;
-    max-height: 80vh;
+    max-width: min(800px, 95vw);
+    max-height: 85vh;
     overflow-y: auto;
+    margin: 0 auto;
 }
 
 .modal:has(.file-picker-modal) {
-	width: 80%;
-	height: 80%;
-	padding-top: 0%;
-	overflow-y:visible
+	width: min(80%, 900px);
+	max-width: 95vw;
+	height: min(80%, 85vh);
+	max-height: 90vh;
+	padding: 20px;
+	overflow-y: visible;
 }
 
 .file-picker-modal .section-title {
     color: var(--text-accent);
     margin-bottom: 10px;
 	margin-top: 0;
-    font-size: 1.1em;
+    font-size: clamp(1em, 2.5vw, 1.1em);
     font-weight: 600;
 }
 
 .file-picker-modal .modal-separator {
     border: none;
     border-top: 1px solid var(--background-modifier-border);
-    margin: 10px 0;
+    margin: 15px 0;
 }
 
-/* Link Form Section */
+/* Link Form Section - Responsive */
 .file-picker-modal .link-form-section {
     margin-bottom: 20px;
 }
@@ -159,10 +162,12 @@
     border-radius: 4px;
     background: var(--background-primary);
     color: var(--text-normal);
-    font-size: 14px;
+    font-size: clamp(12px, 2vw, 14px);
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* Search Section */
+/* Search Section - Responsive */
 .file-picker-modal .search-section {
     margin-bottom: 10px;
 }
@@ -170,7 +175,8 @@
 .file-picker-modal .search-container {
     display: flex;
     gap: 10px;
-    align-items: center;
+    align-items: stretch;
+    flex-wrap: wrap;
 }
 
 .button-container {
@@ -179,12 +185,14 @@
 
 .file-picker-modal .search-input {
     flex: 1;
+    min-width: 200px;
     padding: 8px 12px;
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
     background: var(--background-primary);
     color: var(--text-normal);
-    font-size: 14px;
+    font-size: clamp(12px, 2vw, 14px);
+    box-sizing: border-box;
 }
 
 .file-picker-modal .search-clear-btn {
@@ -194,12 +202,14 @@
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
     transition: all 0.2s ease;
+    font-size: clamp(12px, 2vw, 14px);
+    white-space: nowrap;
 }
 
-/* Links Container */
+/* Links Container - Responsive */
 .file-picker-modal .links-container {
-    min-height: 400px;
-    max-height: 400px;
+    min-height: min(400px, 50vh);
+    max-height: min(400px, 50vh);
     overflow-y: auto;
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
@@ -207,51 +217,59 @@
     background: var(--background-secondary);
 }
 
-.file-picker-modal .empty-message {
+.file-picker-modal .empty-message,
+.file-picker-modal .no-results {
     text-align: center;
     color: var(--text-muted);
     padding: 40px 20px;
     font-style: italic;
+    font-size: clamp(12px, 2vw, 14px);
 }
 
 .file-picker-modal .results-info {
     text-align: center;
     color: var(--text-muted);
-    font-size: 12px;
+    font-size: clamp(10px, 1.8vw, 12px);
     margin-top: 15px;
     padding-top: 10px;
     border-top: 1px solid var(--background-modifier-border);
 }
 
-/* Link Item */
+/* Link Item - Responsive */
 .file-picker-modal .link-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     padding: 12px;
     margin-bottom: 8px;
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
     background: var(--background-primary);
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .file-picker-modal .link-info {
     display: flex;
-	flex-direction: row;
-	align-items: center;
+	flex-direction: column;
+	gap: 8px;
+	flex-grow: 1;
+	min-width: 0;
 }
 
 .file-picker-modal .link-path {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
+    font-size: clamp(11px, 2vw, 13px);
+    flex-wrap: wrap;
 }
 
 .file-picker-modal .path-label {
     font-weight: 600;
     color: var(--text-accent);
     min-width: 35px;
+    flex-shrink: 0;
 }
 
 .file-picker-modal .path-value {
@@ -261,16 +279,19 @@
     padding: 2px 6px;
     border-radius: 3px;
     word-break: break-all;
+    flex-grow: 1;
+    min-width: 0;
 }
 
 .file-picker-modal .link-arrow {
-    text-align: center;
     color: var(--text-muted);
-    font-size: 16px;
+    margin: 0 4px;
+	display: flex;
+	gap: 5px;
 }
 
 .file-picker-modal .link-actions {
-    margin-left: 15px;
+    flex-shrink: 0;
 }
 
 .file-picker-modal .delete-btn {
@@ -278,10 +299,12 @@
     color: white;
     border: none;
     border-radius: 4px;
+    padding: 8px 12px;
+    font-size: clamp(11px, 2vw, 13px);
+    white-space: nowrap;
 }
 
-
-/* Pagination */
+/* Pagination - Responsive */
 .file-picker-modal .pagination-container {
     margin-top: 10px;
     display: flex;
@@ -294,6 +317,8 @@
     display: flex;
     gap: 5px;
     align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .file-picker-modal .pagination-btn {
@@ -302,7 +327,8 @@
     color: var(--text-normal);
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
-    font-size: 12px;
+    font-size: clamp(10px, 1.8vw, 12px);
+    white-space: nowrap;
 }
 
 .file-picker-modal .pagination-btn:hover:not(.disabled) {
@@ -324,10 +350,11 @@
 .file-picker-modal .pagination-dots {
     color: var(--text-muted);
     margin: 0 5px;
+    font-size: clamp(10px, 1.8vw, 12px);
 }
 
 .file-picker-modal .page-info {
-    font-size: 12px;
+    font-size: clamp(10px, 1.8vw, 12px);
     color: var(--text-muted);
 }
 
@@ -335,7 +362,7 @@
 	background: var(--color-red);
 }
 
-/* Page Mode Toggle Styles */
+/* Page Mode Toggle Styles - Responsive */
 .page-mode-toggle-container {
     margin: 12px 0;
     padding: 12px;
@@ -349,6 +376,7 @@
     align-items: center;
     gap: 12px;
     margin-bottom: 6px;
+    flex-wrap: wrap;
 }
 
 .page-mode-toggle-label {
@@ -358,13 +386,15 @@
     align-items: center;
     gap: 6px;
     margin: 0;
+    font-size: clamp(12px, 2vw, 14px);
 }
 
 .page-mode-icon {
     display: inline-flex;
     align-items: center;
-	    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
 }
 
 .page-mode-toggle-input-wrapper {
@@ -372,8 +402,8 @@
 }
 
 .page-mode-toggle-input {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     accent-color: var(--interactive-accent);
 }
 
@@ -382,67 +412,35 @@
 }
 
 .page-mode-description-text {
-    font-size: 0.9em;
+    font-size: clamp(11px, 1.8vw, 13px);
     color: var(--text-muted);
-    line-height: 1.3;
+    line-height: 1.4;
 }
 
-/* Link Item Mode Indicator */
+/* Link Item Mode Indicator - Responsive */
 .link-mode {
     display: flex;
     align-items: center;
     padding: 4px 8px;
     background: var(--background-modifier-form-field);
     border-radius: 4px;
-    font-size: 0.85em;
+    font-size: clamp(10px, 1.5vw, 12px);
     color: var(--text-muted);
+    align-self: flex-start;
 }
 
 .mode-icon {
     display: inline-flex;
     align-items: center;
-}
-
-.mode-icon svg {
     width: 14px;
     height: 14px;
 }
 
+.mode-icon svg {
+    width: 12px;
+    height: 12px;
+}
+
 .mode-text {
     font-weight: 500;
-}
-
-/* Update existing link-info styles to accommodate mode indicator */
-.link-info {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex-grow: 1;
-}
-
-/* Ensure proper spacing for the mode indicator */
-.link-path {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.link-arrow {
-    margin: 0 8px;
-    color: var(--text-muted);
-    font-weight: bold;
-}
-
-/* Responsive adjustments */
-@media (max-width: 600px) {
-    .page-mode-toggle-wrapper {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    
-    .link-mode {
-        font-size: 0.8em;
-        padding: 3px 6px;
-    }
 }

@@ -2,7 +2,7 @@
 	"id": "pdf-alchemist",
 	"name": "PDF Alchemist",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
+	"minAppVersion": "1.9.12",
 	"description": "Link PDF files to markdown notes with page-specific or single-note modes. Automatically sync notes with PDF page changes,",
 	"author": "Breakless",
 	"authorUrl": "https://github.com/Charlo330",

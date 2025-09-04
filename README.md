@@ -211,15 +211,8 @@ Right-click any PDF or markdown file to:
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our contributing guidelines for:
-- Code style standards
-- Testing requirements
-- Pull request process
-- Issue reporting
+We welcome contributions!
 
-## 📄 License
-
-TODO NEED HELP FOR THIS
 ## 🙏 Acknowledgments
 
 Built with:

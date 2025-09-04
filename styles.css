@@ -284,10 +284,10 @@
 }
 
 .file-picker-modal .link-arrow {
-    text-align: center;
     color: var(--text-muted);
-    font-size: 16px;
     margin: 0 4px;
+	display: flex;
+	gap: 5px;
 }
 
 .file-picker-modal .link-actions {
@@ -443,136 +443,4 @@
 
 .mode-text {
     font-weight: 500;
-}
-
-/* Mobile Specific Adjustments */
-@media (max-width: 768px) {
-    .modal:has(.file-picker-modal) {
-        width: 95vw;
-        height: 90vh;
-        padding: 10px;
-    }
-    
-    .file-picker-modal .modal-content {
-        max-width: 100%;
-        max-height: 85vh;
-    }
-    
-    .file-picker-modal .search-container {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .file-picker-modal .search-input {
-        min-width: unset;
-    }
-    
-    .file-picker-modal .link-item {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .file-picker-modal .link-actions {
-        align-self: flex-end;
-        margin-top: 10px;
-    }
-    
-    .file-picker-modal .link-info {
-        flex-direction: column;
-        gap: 6px;
-    }
-    
-    .file-picker-modal .link-path {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-    }
-    
-    .file-picker-modal .path-label {
-        min-width: unset;
-    }
-    
-    .file-picker-modal .link-arrow {
-        display: none;
-    }
-    
-    .page-mode-toggle-wrapper {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    
-    .file-picker-modal .pagination {
-        flex-wrap: wrap;
-        max-width: 100%;
-    }
-    
-    .file-picker-modal .pagination-btn {
-        min-width: 32px;
-        padding: 8px 10px;
-    }
-    
-    .file-picker-modal .links-container {
-        min-height: 40vh;
-        max-height: 40vh;
-    }
-}
-
-@media (max-width: 480px) {
-    .modal:has(.file-picker-modal) {
-        width: 98vw;
-        height: 95vh;
-        padding: 5px;
-    }
-    
-    .file-picker-modal .modal-separator {
-        margin: 10px 0;
-    }
-    
-    .file-picker-modal .file-picker-input-field,
-    .file-picker-modal .search-input {
-        padding: 10px;
-        font-size: 16px; /* Prevents zoom on iOS */
-    }
-    
-    .file-picker-modal .link-item {
-        padding: 8px;
-        margin-bottom: 6px;
-    }
-    
-    .page-mode-toggle-container {
-        padding: 8px;
-        margin: 8px 0;
-    }
-    
-    .file-picker-modal .links-container {
-        padding: 8px;
-        min-height: 35vh;
-        max-height: 35vh;
-    }
-}
-
-/* Tablet Landscape */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .modal:has(.file-picker-modal) {
-        width: 85vw;
-        height: 85vh;
-    }
-    
-    .file-picker-modal .links-container {
-        min-height: min(450px, 55vh);
-        max-height: min(450px, 55vh);
-    }
-}
-
-/* Large Screens */
-@media (min-width: 1200px) {
-    .modal:has(.file-picker-modal) {
-        width: 900px;
-        max-width: 70vw;
-    }
-    
-    .file-picker-modal .modal-content {
-        max-width: 100%;
-    }
 }

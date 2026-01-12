@@ -22,8 +22,6 @@
 		"typescript": "4.7.4"
 	},
 	"dependencies": {
-		"@codemirror/state": "^6.5.2",
-		"@codemirror/view": "^6.36.4",
 		"inversify": "^7.0.0-alpha.5",
 		"monkey-around": "^3.0.0",
 		"reflect-metadata": "^0.2.2"

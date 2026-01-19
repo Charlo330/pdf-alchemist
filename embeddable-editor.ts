@@ -296,6 +296,7 @@ export class EmbeddableMarkdownEditor {
 								![
 									"cm-hmd-internal-link",
 									"cm-link-alias",
+									"is-unresolved",
 								].includes(c)
 						)
 					) {

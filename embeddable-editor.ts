@@ -15,7 +15,7 @@ import { around } from "monkey-around";
 export function createEmbeddableMarkdownEditor(
 	app: App,
 	container: HTMLElement,
-	options: Partial<MarkdownEditorProps>
+	options: Partial<MarkdownEditorProps>,
 ): EmbeddableMarkdownEditor {
 	// Get the editor class
 	const EditorClass = resolveEditorPrototype(app);
@@ -32,14 +32,14 @@ function resolveEditorPrototype(app: App): any {
 	const widgetEditorView = app.embedRegistry.embedByExtension.md(
 		{ app, containerEl: createDiv() },
 		null as unknown as TFile,
-		""
+		"",
 	) as WidgetEditorView;
 
 	// Mark as editable to instantiate the editor
 	widgetEditorView.editable = true;
 	widgetEditorView.showEditor();
 	const MarkdownEditor = Object.getPrototypeOf(
-		Object.getPrototypeOf(widgetEditorView.editMode!)
+		Object.getPrototypeOf(widgetEditorView.editMode!),
 	);
 
 	// Unload to remove the temporary editor
@@ -58,7 +58,7 @@ interface MarkdownEditorProps {
 	onEnter: (
 		editor: EmbeddableMarkdownEditor,
 		mod: boolean,
-		shift: boolean
+		shift: boolean,
 	) => boolean;
 	onEscape: (editor: EmbeddableMarkdownEditor) => void;
 	onSubmit: (editor: EmbeddableMarkdownEditor) => void;
@@ -124,7 +124,7 @@ export class EmbeddableMarkdownEditor {
 		app: App,
 		EditorClass: any,
 		container: HTMLElement,
-		options: Partial<MarkdownEditorProps>
+		options: Partial<MarkdownEditorProps>,
 	) {
 		// Store user options first
 		this.options = { ...defaultProperties, ...options };
@@ -148,7 +148,7 @@ export class EmbeddableMarkdownEditor {
 						// Add placeholder if configured
 						if (self.options.placeholder) {
 							extensions.push(
-								placeholder(self.options.placeholder)
+								placeholder(self.options.placeholder),
 							);
 						}
 
@@ -169,7 +169,7 @@ export class EmbeddableMarkdownEditor {
 									app.keymap.pushScope(self.scope);
 									app.workspace.activeEditor = self.owner;
 								},
-							})
+							}),
 						);
 
 						// Add keyboard handlers
@@ -182,14 +182,14 @@ export class EmbeddableMarkdownEditor {
 											return self.options.onEnter(
 												self,
 												false,
-												false
+												false,
 											);
 										},
 										shift: () =>
 											self.options.onEnter(
 												self,
 												false,
-												true
+												true,
 											),
 									},
 									{
@@ -198,13 +198,13 @@ export class EmbeddableMarkdownEditor {
 											self.options.onEnter(
 												self,
 												true,
-												false
+												false,
 											),
 										shift: () =>
 											self.options.onEnter(
 												self,
 												true,
-												true
+												true,
 											),
 									},
 									{
@@ -215,8 +215,8 @@ export class EmbeddableMarkdownEditor {
 										},
 										preventDefault: true,
 									},
-								])
-							)
+								]),
+							),
 						);
 					}
 
@@ -270,7 +270,7 @@ export class EmbeddableMarkdownEditor {
 			this.editor.editor.cm.dispatch({
 				selection: EditorSelection.range(
 					options.cursorLocation.anchor,
-					options.cursorLocation.head
+					options.cursorLocation.head,
 				),
 			});
 		}
@@ -286,25 +286,27 @@ export class EmbeddableMarkdownEditor {
 			"click",
 			(event: MouseEvent) => {
 				const target = event.target as HTMLElement;
+				console.log(target);
+				console.log(target.tagName)
 				if (this.options.onClickLink) {
 					// Prevent default link behavior
 					if (
-						target.tagName == "A" &&
-						target.hasAttribute("href") &&
-						!Array.from(target.parentElement?.classList ?? []).some(
-							(c) =>
-								![
-									"cm-hmd-internal-link",
-									"cm-link-alias",
-									"is-unresolved",
-								].includes(c)
-						)
+						target.tagName == "SPAN" &&
+						(target.parentElement?.classList.contains(
+							"cm-hmd-internal-link",
+						) ||
+							target.parentElement?.classList.contains(
+								"cm-link-alias",
+							) ||
+							target.parentElement?.classList.contains(
+								"is-unresolved",
+							))
 					) {
 						this.options.onClickLink(event);
 						event.stopImmediatePropagation();
 					}
 				}
-			}
+			},
 		);
 	}
 
